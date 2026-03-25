@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CTF Writeups — Categories</title>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@400;500;700&family=Syne:wght@700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .page-title-block {
+      margin-bottom: 40px;
+      animation: fadeUp .5s ease both;
+    }
+    .page-eyebrow {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .6rem;
+      letter-spacing: .22em;
+      color: var(--green);
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+    .page-title {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(1.6rem, 4vw, 2.4rem);
+      font-weight: 800;
+      color: var(--text);
+      letter-spacing: -.01em;
+      margin-bottom: 10px;
+    }
+    .page-subtitle { font-size: .88rem; color: var(--text-dim); }
+
+    /* ── Global filter bar ──────────────────────────── */
+    .global-filter {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 48px;
+      padding: 14px 18px;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      animation: fadeUp .5s .08s ease both;
+    }
+
+    /* ── Category section ───────────────────────────── */
+    .cat-section {
+      margin-bottom: 60px;
+      scroll-margin-top: 90px;
+    }
+
+    .cat-section-head {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 20px;
+      padding-bottom: 14px;
+      border-bottom: 2px solid var(--border);
+    }
+
+    .cat-icon-big { font-size: 1.4rem; flex-shrink: 0; }
+
+    .cat-section-info { flex: 1; }
+
+    .cat-section-name {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 1.15rem;
+      color: var(--text);
+      letter-spacing: .04em;
+    }
+
+    .cat-section-head[data-color="red"]    .cat-section-name { color: var(--red); }
+    .cat-section-head[data-color="cyan"]   .cat-section-name { color: var(--cyan); }
+    .cat-section-head[data-color="yellow"] .cat-section-name { color: var(--yellow); }
+    .cat-section-head[data-color="purple"] .cat-section-name { color: var(--purple); }
+    .cat-section-head[data-color="green"]  .cat-section-name { color: var(--green); }
+
+    .cat-section-head[data-color="red"]    { border-bottom-color: var(--red); }
+    .cat-section-head[data-color="cyan"]   { border-bottom-color: var(--cyan); }
+    .cat-section-head[data-color="yellow"] { border-bottom-color: var(--yellow); }
+    .cat-section-head[data-color="purple"] { border-bottom-color: var(--purple); }
+    .cat-section-head[data-color="green"]  { border-bottom-color: var(--green); }
+
+    .cat-section-desc {
+      font-size: .78rem;
+      color: var(--text-dim);
+      margin-top: 3px;
+    }
+
+    .cat-section-count {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .65rem;
+      color: var(--text-faint);
+      letter-spacing: .1em;
+      flex-shrink: 0;
+    }
+
+    /* ── Jump nav ───────────────────────────────────── */
+    .jump-nav {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 40px;
+      animation: fadeUp .5s .05s ease both;
+    }
+
+    .jump-link {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .62rem;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      text-decoration: none;
+      padding: 5px 12px;
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      color: var(--text-dim);
+      transition: all .18s;
+    }
+    .jump-link:hover { color: var(--cyan); border-color: var(--cyan); }
+    .jump-link[data-color="red"]:hover    { color: var(--red);    border-color: var(--red); }
+    .jump-link[data-color="cyan"]:hover   { color: var(--cyan);   border-color: var(--cyan); }
+    .jump-link[data-color="yellow"]:hover { color: var(--yellow); border-color: var(--yellow); }
+    .jump-link[data-color="purple"]:hover { color: var(--purple); border-color: var(--purple); }
+    .jump-link[data-color="green"]:hover  { color: var(--green);  border-color: var(--green); }
+  </style>
+</head>
+<body>
+<div class="page-wrap">
+
+  <!-- NAV -->
+  <nav class="topnav">
+    <a class="topnav-logo" href="index.html">TomatoBuster</a>
+    <div class="topnav-right">
+      <ul class="topnav-links">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="writeups.html">Writeups</a></li>
+        <li><a href="categories.html" class="active">Categories</a></li>
+      </ul>
+      <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">
+        <span class="toggle-moon">🌙</span>
+        <span class="toggle-sun">☀️</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- PAGE TITLE -->
+  <div class="page-title-block">
+    <div class="page-eyebrow">// Browse by category</div>
+    <h1 class="page-title">Categories</h1>
+    <p class="page-subtitle">Filter across all challenge types and difficulties.</p>
+  </div>
+
+  <!-- JUMP NAV -->
+  <div class="jump-nav">
+    <a href="#pwn"       class="jump-link" data-color="red">💥 PWN</a>
+    <a href="#web"       class="jump-link" data-color="cyan">🌐 WEB</a>
+    <a href="#crypto"    class="jump-link" data-color="yellow">🔐 CRYPTO</a>
+    <a href="#rev"       class="jump-link" data-color="purple">🔩 REV</a>
+    <a href="#forensics" class="jump-link" data-color="green">🔍 FORENSICS</a>
+    <a href="#misc"      class="jump-link">⚙️ MISC</a>
+  </div>
+
+  <!-- GLOBAL DIFFICULTY FILTER -->
+  <div class="global-filter filter-bar">
+    <span class="filter-label">Difficulty</span>
+    <div class="filter-chips">
+      <button class="chip" data-diff="EASY">EASY</button>
+      <button class="chip" data-diff="MEDIUM">MEDIUM</button>
+      <button class="chip" data-diff="HARD">HARD</button>
+      <button class="chip" data-diff="INSANE">INSANE</button>
+    </div>
+    <span class="filter-count" id="filter-count">24 writeups</span>
+  </div>
+
+  <!-- ══ PWN ══════════════════════════════════════════ -->
+  <section class="cat-section fade-in" id="pwn">
+    <div class="cat-section-head" data-color="red">
+      <span class="cat-icon-big">💥</span>
+      <div class="cat-section-info">
+        <div class="cat-section-name">PWN / Binary Exploitation</div>
+        <div class="cat-section-desc">Buffer overflows, ROP chains, heap exploitation, format strings.</div>
+      </div>
+      <span class="cat-section-count">0 writeups</span>
+    </div>
+    <!-- <div class="writeups-grid">
+      <a href="index.html" class="card" data-cat="PWN" data-diff="HARD">
+        <div class="card-top">
+          <div class="card-badges"><span class="badge badge-pwn">PWN</span><span class="badge badge-hard">HARD</span></div>
+          </div>
+        <div class="card-title">Stack Smash Zero</div>
+        <div class="card-desc">Buffer overflow + ROP chain. ASLR bypass via libc leak.</div>
+        <div class="card-meta"><span>NullCTF 2025</span></div>
+      </a>
+      <a href="index.html" class="card" data-cat="PWN" data-diff="INSANE">
+        <div class="card-top">
+          <div class="card-badges"><span class="badge badge-pwn">PWN</span><span class="badge badge-insane">INSANE</span></div>
+          </div>
+        <div class="card-title">Heap Overflow Heaven</div>
+        <div class="card-desc">tcache poisoning to arbitrary write on glibc 2.35.</div>
+        <div class="card-meta"><span>NullCTF 2025</span></div>
+      </a>
+      <a href="index.html" class="card" data-cat="PWN" data-diff="MEDIUM">
+        <div class="card-top">
+          <div class="card-badges"><span class="badge badge-pwn">PWN</span><span class="badge badge-medium">MEDIUM</span></div>
+          </div>
+        <div class="card-title">ret2win Classic</div>
+        <div class="card-desc">Classic ret2win with 64-bit stack alignment.</div>
+        <div class="card-meta"><span>0xCTF 2025</span></div>
+      </a>
+      <a href="index.html" class="card" data-cat="PWN" data-diff="EASY">
+        <div class="card-top">
+          <div class="card-badges"><span class="badge badge-pwn">PWN</span><span class="badge badge-easy">EASY</span></div>
+          </div>
+        <div class="card-title">Printf Abuse</div>
+        <div class="card-desc">Simple format string read to leak stack canary and bypass protection.</div>
+        <div class="card-meta"><span>WinterCTF 2024</span></div>
+      </a>
+    </div> -->
+  </section>
+
+  <!-- ══ WEB ══════════════════════════════════════════ -->
+  <section class="cat-section fade-in" id="web">
+    <div class="cat-section-head" data-color="cyan">
+      <span class="cat-icon-big">🌐</span>
+      <div class="cat-section-info">
+        <div class="cat-section-name">WEB</div>
+        <div class="cat-section-desc">SQL injection, XSS, SSRF, deserialization, auth bypasses.</div>
+      </div>
+      <span class="cat-section-count">0 writeups</span>
+    </div>
+    <!-- <div class="writeups-grid">
+      <a href="index.html" class="card" data-cat="WEB" data-diff="MEDIUM">
+        <div class="card-top">
+          <div class="card-badges"><span class="badge badge-web">WEB</span><span class="badge badge-medium">MEDIUM</span></div>
+          </div>
+        <div class="card-title">SQL Injection Maze</div>
+        <div class="card-desc">Blind time-based SQLi through a WAF filter layer.</div>
+        <div class="card-meta"><span>NullCTF 2025</span></div>
+      </a>
+      <a href="index.html" class="card" data-cat="WEB" data-diff="EASY">
+        <div class="card-top">
+          <div class="card-badges"><span class="badge badge-web">WEB</span><span class="badge badge-easy">EASY</span></div>
+          </div>
+        <div class="card-title">XSS Labyrinth</div>
+        <div class="card-desc">Stored XSS with CSP bypass to steal admin cookies.</div>
+        <div class="card-meta"><span>HackFest 2025</span></div>
+      </a>
+      <a href="index.html" class="card" data-cat="WEB" data-diff="HARD">
+        <div class="card-top">
+          <div class="card-badges"><span class="badge badge-web">WEB</span><span class="badge badge-hard">HARD</span></div>
+          </div>
+        <div class="card-title">SSRF Black Box</div>
+        <div class="card-desc">Blind SSRF via PDF renderer hitting cloud metadata service.</div>
+        <div class="card-meta"><span>WinterCTF 2024</span></div>
+      </a>
+    </div> -->
+  </section>
+
+  <!-- ══ CRYPTO ════════════════════════════════════════ -->
+  <section class="cat-section fade-in" id="crypto">
+    <div class="cat-section-head" data-color="yellow">
+      <span class="cat-icon-big">🔐</span>
+      <div class="cat-section-info">
+        <div class="cat-section-name">CRYPTO</div>
+        <div class="cat-section-desc">RSA, AES, stream ciphers, custom implementations, number theory.</div>
+      </div>
+      <span class="cat-section-count">0 writeups</span>
+    </div>
+    <!-- <div class="writeups-grid">
+      <a href="index.html" class="card" data-cat="CRYPTO" data-diff="MEDIUM">
+        <div class="card-top">
+          <div class="card-badges"><span class="badge badge-crypto">CRYPTO</span><span class="badge badge-medium">MEDIUM</span></div>
+          </div>
+        <div class="card-title">Broken RSA</div>
+        <div class="card-desc">GCD attack on two RSA keys sharing a prime factor.</div>
+        <div class="card-meta"><span>HackFest 2025</span></div>
+      </a>
+      <a href="index.html" class="card" data-cat="CRYPTO" data-diff="HARD">
+        <div class="card-top">
+          <div class="card-badges"><span class="badge badge-crypto">CRYPTO</span><span class="badge badge-hard">HARD</span></div>
+          </div>
+        <div class="card-title">Cipher Chaos</div>
+        <div class="card-desc">Custom stream cipher with keystream reuse. Known-plaintext XOR recovery.</div>
+        <div class="card-meta"><span>0xCTF 2025</span></div>
+      </a>
+      <a href="index.html" class="card" data-cat="CRYPTO" data-diff="EASY">
+        <div class="card-top">
+          <div class="card-badges"><span class="badge badge-crypto">CRYPTO</span><span class="badge badge-easy">EASY</span></div>
+          </div>
+        <div class="card-title">Vigenere Vibes</div>
+        <div class="card-desc">Classic Vigenere cipher, key recovery through Kasiski examination.</div>
+        <div class="card-meta"><span>WinterCTF 2024</span></div>
+      </a>
+    </div> -->
+  </section>
+
+  <!-- ══ REV ══════════════════════════════════════════ -->
+  <section class="cat-section fade-in" id="rev">
+    <div class="cat-section-head" data-color="purple">
+      <span class="cat-icon-big">🔩</span>
+      <div class="cat-section-info">
+        <div class="cat-section-name">REVERSING</div>
+        <div class="cat-section-desc">Static and dynamic analysis, deobfuscation, keygen, anti-debug.</div>
+      </div>
+      <span class="cat-section-count">0 writeups</span>
+    </div>
+    <!-- <div class="writeups-grid">
+      <a href="index.html" class="card" data-cat="REV" data-diff="HARD">
+        <div class="card-top">
+          <div class="card-badges"><span class="badge badge-rev">REV</span><span class="badge badge-hard">HARD</span></div>
+          </div>
+        <div class="card-title">Ghost in the Binary</div>
+        <div class="card-desc">Obfuscated Go binary with anti-debug. Ghidra static analysis.</div>
+        <div class="card-meta"><span>HackFest 2025</span></div>
+      </a>
+      <a href="index.html" class="card" data-cat="REV" data-diff="MEDIUM">
+        <div class="card-top">
+          <div class="card-badges"><span class="badge badge-rev">REV</span><span class="badge badge-medium">MEDIUM</span></div>
+          </div>
+        <div class="card-title">Rust Reversing</div>
+        <div class="card-desc">License key validation in a Rust binary. Ownership semantics in disasm.</div>
+        <div class="card-meta"><span>WinterCTF 2024</span></div>
+      </a>
+    </div> -->
+  </section>
+
+  <!-- ══ FORENSICS ═════════════════════════════════════ -->
+  <section class="cat-section fade-in" id="forensics">
+    <div class="cat-section-head" data-color="green">
+      <span class="cat-icon-big">🔍</span>
+      <div class="cat-section-info">
+        <div class="cat-section-name">FORENSICS</div>
+        <div class="cat-section-desc">Memory dumps, pcap analysis, steganography, disk images.</div>
+      </div>
+      <span class="cat-section-count">0 writeups</span>
+    </div>
+    <!-- <div class="writeups-grid">
+      <a href="index.html" class="card" data-cat="FORENSICS" data-diff="EASY">
+        <div class="card-top">
+          <div class="card-badges"><span class="badge badge-forensics">FORENSICS</span><span class="badge badge-easy">EASY</span></div>
+          </div>
+        <div class="card-title">Memory Dump 101</div>
+        <div class="card-desc">Volatility analysis of a Windows memory dump. Extract hidden process data.</div>
+        <div class="card-meta"><span>0xCTF 2025</span></div>
+      </a>
+    </div> -->
+  </section>
+
+  <!-- ══ MISC ══════════════════════════════════════════ -->
+  <section class="cat-section fade-in" id="misc">
+    <div class="cat-section-head" data-color="dim">
+      <span class="cat-icon-big">⚙️</span>
+      <div class="cat-section-info">
+        <div class="cat-section-name">MISC</div>
+        <div class="cat-section-desc">Jail escapes, scripting, programming challenges, and everything else.</div>
+      </div>
+      <span class="cat-section-count">1 writeup</span>
+    </div>
+    <div class="writeups-grid">
+      <a href="writeups/kobold.html" class="card" data-cat="MISC" data-diff="EASY">
+        <div class="card-top">
+          <div class="card-badges"><span class="badge badge-misc">MISC</span><span class="badge badge-easy">EASY</span></div>
+          </div>
+        <div class="card-title">Kobold</div>
+        <div class="card-desc">API exploitation + docker socket abuse</div>
+        <div class="card-meta"><span>HTB 2026</span></div>
+      </a>
+    </div>
+  </section>
+
+  <!-- SITE FOOTER -->
+  <footer class="site-footer">
+    <span class="site-footer-logo">TomatoBuster</span>
+    <span class="site-footer-copy">Built by TomatoBuster · 2026</span>
+  </footer>
+
+</div>
+<script src="script.js"></script>
+</body>
+</html>

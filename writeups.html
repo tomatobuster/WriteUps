@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CTF Writeups — All Writeups</title>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@400;500;700&family=Syne:wght@700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .page-title-block {
+      margin-bottom: 40px;
+      animation: fadeUp .5s ease both;
+    }
+    .page-eyebrow {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .6rem;
+      letter-spacing: .22em;
+      color: var(--green);
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+    .page-title {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(1.6rem, 4vw, 2.4rem);
+      font-weight: 800;
+      color: var(--text);
+      letter-spacing: -.01em;
+      margin-bottom: 10px;
+    }
+    .page-subtitle {
+      font-size: .88rem;
+      color: var(--text-dim);
+    }
+
+    /* search bar */
+    .search-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 16px;
+      animation: fadeUp .5s .05s ease both;
+    }
+    .search-input {
+      flex: 1;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 10px 16px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .78rem;
+      color: var(--text);
+      outline: none;
+      transition: border-color .2s;
+    }
+    .search-input::placeholder { color: var(--text-faint); }
+    .search-input:focus { border-color: var(--cyan); }
+
+    .sort-select {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 10px 14px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .72rem;
+      color: var(--text-dim);
+      outline: none;
+      cursor: pointer;
+      transition: border-color .2s;
+    }
+    .sort-select:focus { border-color: var(--cyan); }
+
+    .filter-bar { animation: fadeUp .5s .1s ease both; }
+    .writeups-grid { animation: fadeUp .5s .18s ease both; }
+
+    /* ctf group label */
+    .ctf-group { margin-bottom: 12px; margin-top: 36px; }
+    .ctf-group:first-of-type { margin-top: 0; }
+    .ctf-group-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .6rem;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+      color: var(--text-faint);
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 14px;
+    }
+  </style>
+</head>
+<body>
+<div class="page-wrap">
+
+  <!-- NAV -->
+  <nav class="topnav">
+    <a class="topnav-logo" href="index.html">TomatoBuster</a>
+    <div class="topnav-right">
+      <ul class="topnav-links">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="writeups.html" class="active">Writeups</a></li>
+        <li><a href="categories.html">Categories</a></li>
+      </ul>
+      <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">
+        <span class="toggle-moon">🌙</span>
+        <span class="toggle-sun">☀️</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- PAGE TITLE -->
+  <div class="page-title-block">
+    <div class="page-eyebrow">// All writeups</div>
+    <h1 class="page-title">Writeups</h1>
+    <p class="page-subtitle">Every challenge documented. Every flag earned.</p>
+  </div>
+
+  <!-- SEARCH -->
+  <div class="search-row">
+    <input class="search-input" id="search-input" type="text" placeholder="Search writeups..." />
+    <select class="sort-select" id="sort-select">
+      <option value="date">Latest first</option>
+      <option value="points">Highest pts</option>
+      <option value="solves">Least solves</option>
+    </select>
+  </div>
+
+  <!-- FILTER BAR -->
+  <div class="filter-bar">
+    <span class="filter-label">Category</span>
+    <div class="filter-chips">
+      <button class="chip" data-cat="PWN">PWN</button>
+      <button class="chip" data-cat="WEB">WEB</button>
+      <button class="chip" data-cat="CRYPTO">CRYPTO</button>
+      <button class="chip" data-cat="REV">REV</button>
+      <button class="chip" data-cat="FORENSICS">FORENSICS</button>
+      <button class="chip" data-cat="MISC">MISC</button>
+    </div>
+    <div class="filter-sep"></div>
+    <span class="filter-label">Difficulty</span>
+    <div class="filter-chips">
+      <button class="chip" data-diff="EASY">EASY</button>
+      <button class="chip" data-diff="MEDIUM">MEDIUM</button>
+      <button class="chip" data-diff="HARD">HARD</button>
+      <button class="chip" data-diff="INSANE">INSANE</button>
+    </div>
+    <span class="filter-count" id="filter-count">1 writeup</span>
+  </div>
+
+  <!-- GRID -->
+  <div class="writeups-grid" id="writeups-grid">
+
+    <a href="./writeups/kobold.html" class="card" data-cat="MISC" data-diff="EASY" data-date="20260324" data-title="Kobold">
+      <div class="card-top">
+        <div class="card-badges"><span class="badge badge-misc">MISC</span><span class="badge badge-easy">EASY</span></div>
+        </div>
+      <div class="card-title">Kobold</div>
+      <div class="card-desc">API exploitation + docker socket abuse</div>
+      <div class="card-meta"><span>TomatoBuster 2026</span><span>Mar 24, 2026</span></div>
+    </a>
+
+    <!-- <a href="index.html" class="card" data-cat="WEB" data-diff="MEDIUM" data-date="20250315" data-title="SQL Injection Maze">
+      <div class="card-top">
+        <div class="card-badges"><span class="badge badge-web">WEB</span><span class="badge badge-medium">MEDIUM</span></div>
+        </div>
+      <div class="card-title">SQL Injection Maze</div>
+      <div class="card-desc">Blind time-based SQLi through a WAF. Exfiltrate the flag character by character.</div>
+      <div class="card-meta"><span>NullCTF 2025</span><span>Mar 15, 2025</span></div>
+    </a>
+
+    <a href="index.html" class="card" data-cat="PWN" data-diff="INSANE" data-date="20250315" data-title="Heap Overflow Heaven">
+      <div class="card-top">
+        <div class="card-badges"><span class="badge badge-pwn">PWN</span><span class="badge badge-insane">INSANE</span></div>
+        </div>
+      <div class="card-title">Heap Overflow Heaven</div>
+      <div class="card-desc">House of Force heap exploit on glibc 2.35. tcache poisoning to arbitrary write.</div>
+      <div class="card-meta"><span>NullCTF 2025</span><span>Mar 15, 2025</span></div>
+    </a>
+
+    <a href="index.html" class="card" data-cat="CRYPTO" data-diff="MEDIUM" data-date="20250220" data-title="Broken RSA">
+      <div class="card-top">
+        <div class="card-badges"><span class="badge badge-crypto">CRYPTO</span><span class="badge badge-medium">MEDIUM</span></div>
+        </div>
+      <div class="card-title">Broken RSA</div>
+      <div class="card-desc">Shared prime factor between two keys. GCD to recover the private key, decrypt the flag.</div>
+      <div class="card-meta"><span>HackFest 2025</span><span>Feb 20, 2025</span></div>
+    </a>
+
+    <a href="index.html" class="card" data-cat="WEB" data-diff="EASY" data-date="20250220" data-title="XSS Labyrinth">
+      <div class="card-top">
+        <div class="card-badges"><span class="badge badge-web">WEB</span><span class="badge badge-easy">EASY</span></div>
+        </div>
+      <div class="card-title">XSS Labyrinth</div>
+      <div class="card-desc">Stored XSS with CSP bypass. Exfiltrate admin cookies via fetch to attacker server.</div>
+      <div class="card-meta"><span>HackFest 2025</span><span>Feb 20, 2025</span></div>
+    </a>
+
+    <a href="index.html" class="card" data-cat="REV" data-diff="HARD" data-date="20250220" data-title="Ghost in the Binary">
+      <div class="card-top">
+        <div class="card-badges"><span class="badge badge-rev">REV</span><span class="badge badge-hard">HARD</span></div>
+        </div>
+      <div class="card-title">Ghost in the Binary</div>
+      <div class="card-desc">Obfuscated Go binary with anti-debug tricks. Static analysis in Ghidra reveals the key-check logic.</div>
+      <div class="card-meta"><span>HackFest 2025</span><span>Feb 20, 2025</span></div>
+    </a>
+
+    <a href="index.html" class="card" data-cat="CRYPTO" data-diff="HARD" data-date="20250118" data-title="Cipher Chaos">
+      <div class="card-top">
+        <div class="card-badges"><span class="badge badge-crypto">CRYPTO</span><span class="badge badge-hard">HARD</span></div>
+        </div>
+      <div class="card-title">Cipher Chaos</div>
+      <div class="card-desc">Custom stream cipher with reused keystream. Known-plaintext XOR recovery of the key.</div>
+      <div class="card-meta"><span>0xCTF 2025</span><span>Jan 18, 2025</span></div>
+    </a>
+
+    <a href="index.html" class="card" data-cat="PWN" data-diff="MEDIUM" data-date="20250118" data-title="ret2win Classic">
+      <div class="card-top">
+        <div class="card-badges"><span class="badge badge-pwn">PWN</span><span class="badge badge-medium">MEDIUM</span></div>
+        </div>
+      <div class="card-title">ret2win Classic</div>
+      <div class="card-desc">Classic ret2win with 64-bit calling convention. Align the stack, jump to win().</div>
+      <div class="card-meta"><span>0xCTF 2025</span><span>Jan 18, 2025</span></div>
+    </a>
+
+    <a href="index.html" class="card" data-cat="FORENSICS" data-diff="EASY" data-date="20250118" data-title="Memory Dump 101">
+      <div class="card-top">
+        <div class="card-badges"><span class="badge badge-forensics">FORENSICS</span><span class="badge badge-easy">EASY</span></div>
+        </div>
+      <div class="card-title">Memory Dump 101</div>
+      <div class="card-desc">Volatility analysis of a Windows memory dump. Extract process list and find the hidden flag.</div>
+      <div class="card-meta"><span>0xCTF 2025</span><span>Jan 18, 2025</span></div>
+    </a>
+
+    <a href="index.html" class="card" data-cat="WEB" data-diff="HARD" data-date="20241210" data-title="SSRF Black Box">
+      <div class="card-top">
+        <div class="card-badges"><span class="badge badge-web">WEB</span><span class="badge badge-hard">HARD</span></div>
+        </div>
+      <div class="card-title">SSRF Black Box</div>
+      <div class="card-desc">Blind SSRF via PDF generation to hit internal metadata service and leak cloud credentials.</div>
+      <div class="card-meta"><span>WinterCTF 2024</span><span>Dec 10, 2024</span></div>
+    </a>
+
+    <a href="index.html" class="card" data-cat="REV" data-diff="MEDIUM" data-date="20241210" data-title="Rust Reversing">
+      <div class="card-top">
+        <div class="card-badges"><span class="badge badge-rev">REV</span><span class="badge badge-medium">MEDIUM</span></div>
+        </div>
+      <div class="card-title">Rust Reversing</div>
+      <div class="card-desc">Reverse a Rust binary's license key validation. Understand ownership semantics in disassembly.</div>
+      <div class="card-meta"><span>WinterCTF 2024</span><span>Dec 10, 2024</span></div>
+    </a>
+
+    <a href="index.html" class="card" data-cat="MISC" data-diff="EASY" data-date="20241210" data-title="Jail Break">
+      <div class="card-top">
+        <div class="card-badges"><span class="badge badge-misc">MISC</span><span class="badge badge-easy">EASY</span></div>
+        </div>
+      <div class="card-title">Jail Break</div>
+      <div class="card-desc">Python jail with restricted builtins. Escape via __class__.__mro__ and subclass enumeration.</div>
+      <div class="card-meta"><span>WinterCTF 2024</span><span>Dec 10, 2024</span></div>
+    </a> -->
+
+  </div>
+
+  <div class="no-results">No writeups match the current filters.</div>
+
+  <!-- SITE FOOTER -->
+  <footer class="site-footer">
+    <span class="site-footer-logo">TomatoBuster</span>
+    <span class="site-footer-copy">Built by TomatoBuster · 2026</span>
+  </footer>
+
+</div>
+<script src="script.js"></script>
+<script>
+  // Search filter
+  const searchInput = document.getElementById('search-input');
+  searchInput && searchInput.addEventListener('input', () => {
+    const q = searchInput.value.toLowerCase();
+    document.querySelectorAll('.card[data-title]').forEach(card => {
+      const title = (card.dataset.title || '').toLowerCase();
+      const desc  = (card.querySelector('.card-desc')?.textContent || '').toLowerCase();
+      card.style.display = (title.includes(q) || desc.includes(q)) ? '' : 'none';
+    });
+  });
+</script>
+</body>
+</html>
