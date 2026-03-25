@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+
+  <!-- Homepage -->
+  <url>
+    <loc>https://tomatobuster.github.io/WriteUps/index.html</loc>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+
+  <!-- Categories page -->
+  <url>
+    <loc>https://tomatobuster.github.io/WriteUps/categories.html</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- Writeups main page -->
+  <url>
+    <loc>https://tomatobuster.github.io/WriteUps/writeups.html</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- Individual writeups -->
+  <url>
+    <loc>https://tomatobuster.github.io/WriteUps/writeups/kobold.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+
+  <!-- Google verification -->
+  <url>
+    <loc>https://tomatobuster.github.io/WriteUps/googlea12ca2e965388ccb.html</loc>
+    <changefreq>yearly</changefreq>
+    <priority>0.1</priority>
+  </url>
+
+</urlset>
