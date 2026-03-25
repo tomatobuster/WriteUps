@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 
-  <!-- Homepage -->
+  <!-- Home page -->
   <url>
     <loc>https://tomatobuster.github.io/WriteUps/index.html</loc>
     <changefreq>weekly</changefreq>
@@ -11,28 +11,28 @@
   <!-- Categories page -->
   <url>
     <loc>https://tomatobuster.github.io/WriteUps/categories.html</loc>
-    <changefreq>weekly</changefreq>
+    <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
 
-  <!-- Writeups main page -->
+  <!-- Writeups overview page -->
   <url>
     <loc>https://tomatobuster.github.io/WriteUps/writeups.html</loc>
-    <changefreq>weekly</changefreq>
+    <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
 
-  <!-- Individual writeups -->
+  <!-- Individual writeups folder (if you want Google to crawl all writeups) -->
   <url>
-    <loc>https://tomatobuster.github.io/WriteUps/writeups/kobold.html</loc>
+    <loc>https://tomatobuster.github.io/WriteUps/writeups/</loc>
     <changefreq>monthly</changefreq>
-    <priority>0.5</priority>
+    <priority>0.6</priority>
   </url>
 
-  <!-- Google verification -->
+  <!-- Google verification file -->
   <url>
     <loc>https://tomatobuster.github.io/WriteUps/googlea12ca2e965388ccb.html</loc>
-    <changefreq>yearly</changefreq>
+    <changefreq>never</changefreq>
     <priority>0.1</priority>
   </url>
 
