@@ -314,7 +314,7 @@ code { font-family: 'JetBrains Mono', monospace; font-size: .88em; background: v
   height: 46px;
   border-radius: 50%;
 
-  background-image: url('/img/tomato.png');
+  background-image: url('img/tomato.png');
   background-size: cover;        /* fills circle */
   background-position: center;   /* centers tomato */
   background-repeat: no-repeat;
