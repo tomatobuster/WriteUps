@@ -247,16 +247,20 @@
       padding: 10px 0;
       margin-bottom: 72px;
     }
-    .ticker-inner {
+        .ticker-inner {
       display: flex;
       gap: 40px;
       white-space: nowrap;
-      animation: ticker 28s linear infinite;
+      animation: ticker 17s linear infinite;
     }
-    .ticker-inner:hover { animation-play-state: paused; }
+
     @keyframes ticker {
-      from { transform: translateX(0); }
-      to   { transform: translateX(-50%); }
+      from {
+        transform: translateX(100%);
+      }
+      to {
+        transform: translateX(-100%);
+      }
     }
     .ticker-item {
       font-family: 'JetBrains Mono', monospace;
@@ -310,27 +314,14 @@
   <div class="ticker-wrap">
     <div class="ticker-inner" id="ticker">
       <span class="ticker-item"><span class="ticker-dot"></span>Kobold - Easy</span>
-      <!-- <span class="ticker-item"><span class="ticker-dot"></span> SQL Injection Maze — 350pts</span>
-      <span class="ticker-item"><span class="ticker-dot"></span> Broken RSA — 400pts</span>
-      <span class="ticker-item"><span class="ticker-dot"></span> Ghost in the Binary — 450pts</span>
-      <span class="ticker-item"><span class="ticker-dot"></span> XSS Labyrinth — 200pts</span>
-      <span class="ticker-item"><span class="ticker-dot"></span> Heap Overflow Heaven — 500pts</span>
-      <span class="ticker-item"><span class="ticker-dot"></span> Cipher Chaos — 300pts</span> -->
-      <!-- duplicate for seamless loop -->
-      <!-- <span class="ticker-item"><span class="ticker-dot"></span> Stack Smash Zero — 500pts</span>
-      <span class="ticker-item"><span class="ticker-dot"></span> SQL Injection Maze — 350pts</span>
-      <span class="ticker-item"><span class="ticker-dot"></span> Broken RSA — 400pts</span>
-      <span class="ticker-item"><span class="ticker-dot"></span> Ghost in the Binary — 450pts</span>
-      <span class="ticker-item"><span class="ticker-dot"></span> XSS Labyrinth — 200pts</span>
-      <span class="ticker-item"><span class="ticker-dot"></span> Heap Overflow Heaven — 500pts</span>
-      <span class="ticker-item"><span class="ticker-dot"></span> Cipher Chaos — 300pts</span> -->
+      <span class="ticker-item"><span class="ticker-dot"></span>DevArea - Medium</span>
     </div>
   </div>
 
   <!-- STATS -->
   <div class="stats-row">
     <div class="stat">
-      <div class="stat-num"><span class="s-green">1</span></div>
+      <div class="stat-num"><span class="s-green">2</span></div>
       <div class="stat-label">Writeups</div>
     </div>
     <div class="stat">
@@ -356,7 +347,19 @@
           <span class="badge badge-easy">EASY</span>
         </div>
       </div>
-      </a></section></div>
+      </a>
+      <a href="./writeups/devarea.html" class="featured-card">
+      <div>
+        <div class="fc-label">// Featured · HTB 2026</div>
+        <div class="fc-title">DevArea</div>
+        <p class="fc-desc">XXE injection, HoverFly RCE and Bash overwriting</p>
+        <div class="fc-badges">
+          <span class="badge badge-web">WEB</span>
+          <span class="badge badge-medium">MEDIUM</span>
+        </div>
+      </div>
+      </a>
+    </section></div>
 
   
 

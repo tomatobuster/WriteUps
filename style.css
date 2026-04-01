@@ -386,3 +386,12 @@ code { font-family: 'JetBrains Mono', monospace; font-size: .88em; background: v
   pre { font-size: .85rem; }
   .writeups-grid { grid-template-columns: 1fr; }
 }
+
+/* ----- LINK -------------------------------------------*/
+
+#link {
+
+  text-decoration: none;
+  color: var(--cyan);
+
+}

