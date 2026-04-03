@@ -58,7 +58,7 @@ function initFlagScramble() {
           i < step ? c : chars[Math.floor(Math.random() * chars.length)]
         ).join('');
         step += 2;
-      }, 40);
+      }, 80 );
     });
   }, { threshold: 0.5 });
   obs.observe(el);

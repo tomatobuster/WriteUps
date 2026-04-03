@@ -1,39 +1,40 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 
-  <!-- Home page -->
   <url>
     <loc>https://tomatobuster.github.io/WriteUps/index.html</loc>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
 
-  <!-- Categories page -->
   <url>
     <loc>https://tomatobuster.github.io/WriteUps/categories.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
 
-  <!-- Writeups overview page -->
   <url>
     <loc>https://tomatobuster.github.io/WriteUps/writeups.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
 
-  <!-- Individual writeups folder (if you want Google to crawl all writeups) -->
   <url>
     <loc>https://tomatobuster.github.io/WriteUps/writeups/</loc>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
 
-  <!-- Google verification file -->
   <url>
-    <loc>https://tomatobuster.github.io/WriteUps/googlea12ca2e965388ccb.html</loc>
-    <changefreq>never</changefreq>
-    <priority>0.1</priority>
+    <loc>https://tomatobuster.github.io/WriteUps/writeups/kobold.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+
+  <url>
+    <loc>https://tomatobuster.github.io/WriteUps/writeups/devarea.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
   </url>
 
 </urlset>
