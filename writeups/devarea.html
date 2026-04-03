@@ -9,6 +9,7 @@
   <meta name="google-site-verification" content="3Vc8x1jdXPIbvS5X4iuKAZkwUSr18FC1WMOho-akXHg" />
   <meta name="description" content="DevArea HTB writeup — chaining XXE injection with HoverFly RCE and Bash binary overwriting to gain full system access. HackTheBox 2026, Web, Medium.">
   <link rel="canonical" href="https://tomatobuster.github.io/WriteUps/writeups/devarea.html">
+  <link rel="alternate" type="application/rss+xml" title="TomatoBuster CTF Writeups" href="https://tomatobuster.github.io/WriteUps/feed.xml">       
   <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -306,7 +307,7 @@ public class ServerStarter {
       </tbody>
     </table>
 
-    <p>We use the public PoC from <a id ="link" href="https://github.com/kasem545/CVE-2022-46364-Poc" target="_blank">kasem545/CVE-2022-46364-Poc</a>. The script crafts a multipart SOAP envelope with an <code>xop:Include</code> pointing to a local file path. The raw request looks like this:</p>
+    <p>We use the public PoC from <a class="link" href="https://github.com/kasem545/CVE-2022-46364-Poc" target="_blank">kasem545/CVE-2022-46364-Poc</a>. The script crafts a multipart SOAP envelope with an <code>xop:Include</code> pointing to a local file path. The raw request looks like this:</p>
 
     <div class="terminal">
       <div class="terminal-bar">
@@ -717,6 +718,26 @@ EOF</span></pre>
       <div class="flag-value" id="flag-text">HTB{REDACTED}</div>
     </div>
   </section>
+
+  <section class="home-section">
+  <div class="home-section-head">
+    <span class="home-section-title">Related Writeups</span>
+    <a class="link" href="../writeups.html" class="home-section-link">View all →</a>
+  </div>
+  <div class="writeups-grid">
+    <a href="./kobold.html" class="card" data-cat="MISC" data-diff="EASY">
+      <div class="card-top">
+        <div class="card-badges">
+          <span class="badge badge-misc">MISC</span>
+          <span class="badge badge-easy">EASY</span>
+        </div>
+      </div>
+      <div class="card-title">Kobold</div>
+      <div class="card-desc">API exploitation + docker socket abuse</div>
+      <div class="card-meta"><span>HTB 2026</span><span>Mar 24, 2026</span></div>
+    </a>
+  </div>
+</section>
 
   <!-- FOOTER -->
   <footer class="writeup-footer">

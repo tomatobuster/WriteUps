@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>404 — TomatoBuster</title>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@400;500;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./assets/style.css">
+  <link rel="icon" type="image/x-icon" href="./ico/favicon.ico">
+  <style>
+    .not-found-wrap {
+      min-height: 80vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 60px 20px;
+      position: relative;
+    }
+
+    .not-found-wrap::before {
+      content: '404';
+      position: absolute;
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(8rem, 22vw, 18rem);
+      font-weight: 800;
+      color: var(--border);
+      letter-spacing: -.04em;
+      user-select: none;
+      pointer-events: none;
+      line-height: 1;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 0;
+    }
+
+    .not-found-content {
+      position: relative;
+      z-index: 1;
+    }
+
+    .not-found-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .62rem;
+      letter-spacing: .28em;
+      color: var(--green);
+      text-transform: uppercase;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .not-found-label::before {
+      content: '';
+      display: inline-block;
+      width: 20px; height: 1px;
+      background: var(--green);
+    }
+    .not-found-label::after {
+      content: '';
+      display: inline-block;
+      width: 20px; height: 1px;
+      background: var(--green);
+    }
+
+    .not-found-title {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(1.6rem, 4vw, 2.6rem);
+      font-weight: 800;
+      color: var(--text);
+      margin-bottom: 14px;
+      letter-spacing: -.01em;
+      line-height: 1.15;
+    }
+    .not-found-title .accent { color: var(--green); text-shadow: var(--glow-g); }
+
+    .not-found-desc {
+      font-size: .92rem;
+      color: var(--text-dim);
+      max-width: 420px;
+      line-height: 1.85;
+      margin: 0 auto 36px;
+    }
+
+    .not-found-terminal {
+      background: #020507;
+      border: 1px solid #1a2f20;
+      border-radius: 4px;
+      padding: 18px 24px;
+      margin: 0 auto 36px;
+      max-width: 480px;
+      text-align: left;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .84rem;
+      line-height: 1.9;
+    }
+    [data-theme="light"] .not-found-terminal {
+      background: #1a1f26;
+      border-color: #2a3a4a;
+    }
+
+    .not-found-actions {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .glitch {
+      position: relative;
+      display: inline-block;
+    }
+    .glitch::before,
+    .glitch::after {
+      content: attr(data-text);
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100%;
+    }
+    .glitch::before {
+      color: var(--red);
+      animation: glitch1 3.5s infinite;
+      clip-path: polygon(0 20%, 100% 20%, 100% 40%, 0 40%);
+    }
+    .glitch::after {
+      color: var(--cyan);
+      animation: glitch2 3.5s infinite;
+      clip-path: polygon(0 60%, 100% 60%, 100% 80%, 0 80%);
+    }
+
+    @keyframes glitch1 {
+      0%, 90%, 100% { transform: translate(0); opacity: 0; }
+      92%           { transform: translate(-3px, 1px); opacity: .7; }
+      94%           { transform: translate(3px, -1px); opacity: .7; }
+      96%           { transform: translate(-2px, 0); opacity: .7; }
+      98%           { transform: translate(0); opacity: 0; }
+    }
+    @keyframes glitch2 {
+      0%, 90%, 100% { transform: translate(0); opacity: 0; }
+      93%           { transform: translate(3px, -1px); opacity: .7; }
+      95%           { transform: translate(-3px, 1px); opacity: .7; }
+      97%           { transform: translate(2px, 0); opacity: .7; }
+      99%           { transform: translate(0); opacity: 0; }
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0; }
+    }
+    .cursor {
+      display: inline-block;
+      width: 8px; height: 14px;
+      background: var(--green);
+      vertical-align: middle;
+      animation: blink .9s step-end infinite;
+      margin-left: 2px;
+    }
+  </style>
+</head>
+<body>
+<div class="page-wrap">
+
+  <!-- NAV -->
+  <nav class="topnav">
+    <a class="topnav-logo" href="index.html">TomatoBuster</a>
+    <div class="topnav-right">
+      <ul class="topnav-links" id="nav-links">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="writeups.html">Writeups</a></li>
+        <li><a href="categories.html">Categories</a></li>
+      </ul>
+      <button class="hamburger" id="hamburger" aria-label="Toggle navigation">
+        <span></span><span></span><span></span>
+      </button>
+      <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">
+        <span class="toggle-moon">🌙</span>
+        <span class="toggle-sun">☀️</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- 404 CONTENT -->
+  <div class="not-found-wrap">
+    <div class="not-found-content">
+      <div class="not-found-label">Error</div>
+
+      <h1 class="not-found-title">
+        <span class="glitch" data-text="Page Not Found">
+          Page <span class="accent">Not Found</span>
+        </span>
+      </h1>
+
+      <p class="not-found-desc">
+        Looks like this flag doesn't exist — or you've wandered into uncharted territory. The page you're looking for has been moved, deleted, or never existed.
+      </p>
+
+      <div class="not-found-terminal">
+        <div><span class="prompt">$</span> <span class="cmd">GET</span> <span style="color:var(--text-dim)" id="bad-url">/???</span></div>
+        <div><span class="out">→ 404 Not Found</span></div>
+        <div><span class="prompt">$</span> <span class="cmd">cd</span> ~/writeups<span class="cursor"></span></div>
+      </div>
+
+      <div class="not-found-actions">
+        <a class="link" href="index.html" class="btn btn-primary">Go Home</a>
+        <a class="link" href="writeups.html" class="btn btn-outline">Browse Writeups</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="site-footer">
+    <span class="site-footer-logo">TomatoBuster</span>
+    <span class="site-footer-copy">Built by TomatoBuster · 2026</span>  
+  </footer>
+
+</div>
+<script src="assets/script.js"></script>
+<script>
+  // Show the bad URL in the terminal
+  const badUrl = document.getElementById('bad-url');
+  if (badUrl) badUrl.textContent = window.location.pathname;
+</script>
+</body>
+</html>

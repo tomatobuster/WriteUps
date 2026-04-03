@@ -153,6 +153,18 @@ function initMobileNav() {
   });
 }
 
+/* ── Reading Time ─────────────────────────────────────── */
+function initReadingTime() {
+  const article = document.querySelector('.section');
+  if (!article) return;
+
+  const words = article.innerText.trim().split(/\s+/).length;
+  const minutes = Math.ceil(words / 30);
+
+  const el = document.querySelector('.hero-meta-text');
+  if (el) el.textContent += ` · ${minutes} min read`;
+}
+
 /* ── Init All ─────────────────────────────────────────── */
 document.addEventListener('DOMContentLoaded', () => {
   initThemeToggle();
@@ -161,4 +173,5 @@ document.addEventListener('DOMContentLoaded', () => {
   initScrollFade();
   initFilter();
   initMobileNav();
+  initReadingTime();
 });

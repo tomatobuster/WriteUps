@@ -333,6 +333,7 @@ code { font-family: 'JetBrains Mono', monospace; font-size: .88em; background: v
 .footer-tags { display: flex; gap: 7px; flex-wrap: wrap; margin-right: 3%; margin-bottom: 1%;}
 .tag { font-size: .75rem; font-family: 'JetBrains Mono', monospace; letter-spacing: .08em; padding: 4px 11px; border: 1px solid var(--border); border-radius: 2px; color: var(--text-dim); transition: all .2s; cursor: default; }
 .tag:hover { border-color: var(--cyan); color: var(--cyan); }
+.home-section-head {margin-bottom: 1%;}
 
 /* ─── SITE FOOTER ─────────────────────────────────────── */
 .site-footer { border-top: 1px solid var(--border); padding-top: 32px; margin-top: 80px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
@@ -389,7 +390,7 @@ code { font-family: 'JetBrains Mono', monospace; font-size: .88em; background: v
 
 /* ----- LINK -------------------------------------------*/
 
-#link {
+.link {
 
   text-decoration: none;
   color: var(--cyan);
