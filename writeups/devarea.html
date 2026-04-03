@@ -7,6 +7,48 @@
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@400;500;700&family=Syne:wght@700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="../assets/style.css" />
   <meta name="google-site-verification" content="3Vc8x1jdXPIbvS5X4iuKAZkwUSr18FC1WMOho-akXHg" />
+  <meta name="description" content="DevArea HTB writeup — chaining XXE injection with HoverFly RCE and Bash binary overwriting to gain full system access. HackTheBox 2026, Web, Medium.">
+  <link rel="canonical" href="https://tomatobuster.github.io/WriteUps/writeups/devarea.html">
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "TechArticle",
+      "headline": "DevArea — HTB Writeup",
+      "description": "Chaining XXE injection with HoverFly RCE and Bash binary overwriting to gain full system access. HackTheBox 2026, Web, Medium.",
+      "author": {
+        "@type": "Person",
+        "name": "TomatoBuster",
+        "url": "https://tomatobuster.github.io/WriteUps/"
+      },
+      "publisher": {
+        "@type": "Person",
+        "name": "TomatoBuster",
+        "url": "https://tomatobuster.github.io/WriteUps/"
+      },
+      "datePublished": "2026-03-31",
+      "dateModified": "2026-03-31",
+      "url": "https://tomatobuster.github.io/WriteUps/writeups/devarea.html",
+      "mainEntityOfPage": "https://tomatobuster.github.io/WriteUps/writeups/devarea.html",
+      "keywords": ["CTF", "HackTheBox", "Web", "XXE", "RCE", "HoverFly", "Bash"],
+      "articleSection": "CTF Writeups",
+      "difficulty": "Medium"
+    }
+</script>
+  <!-- Open Graph -->
+  <meta property="og:title" content="DevArea — HTB Writeup | TomatoBuster">
+  <meta property="og:description" content="Chaining XXE injection with HoverFly RCE and Bash binary overwriting to gain full system access. HackTheBox 2026, Web, Medium.">
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="https://tomatobuster.github.io/WriteUps/writeups/devarea.html">
+  <meta property="og:image" content="https://tomatobuster.github.io/WriteUps/assets/img/og-devarea.png">
+  <meta property="article:published_time" content="2026-03-31">
+  <meta property="article:author" content="TomatoBuster">
+  <meta property="article:tag" content="CTF, HackTheBox, Web, XXE, RCE, HoverFly">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="DevArea — HTB Writeup | TomatoBuster">
+  <meta name="twitter:description" content="Chaining XXE injection with HoverFly RCE and Bash binary overwriting to gain full system access. HackTheBox 2026, Web, Medium.">
+  <meta name="twitter:image" content="https://tomatobuster.github.io/WriteUps/assets/img/og-devarea.png">
   <link rel="icon" type="image/x-icon" href="../ico/favicon.ico">
   <link rel="icon" type="image/png" sizes="32x32" href="../ico/favicon-32x32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="../ico/favicon-16x16.png">
@@ -19,19 +61,24 @@
 
   <!-- NAV -->
 <nav class="topnav">
-    <a class="topnav-logo" href="../index.html">TomatoBuster</a>
-    <div class="topnav-right">
-      <ul class="topnav-links">
-        <li><a href="../index.html">Home</a></li> 
-        <li><a href="../writeups.html">Writeups</a></li>
-        <li><a href="../categories.html">Categories</a></li>
-      </ul>
-      <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">
-        <span class="toggle-moon">🌙</span>
-        <span class="toggle-sun">☀️</span>
-      </button>
-    </div>
-  </nav>
+  <a class="topnav-logo" href="index.html">TomatoBuster</a>
+  <div class="topnav-right">
+    <ul class="topnav-links" id="nav-links">
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="../writeups.html">Writeups</a></li>
+      <li><a href="../categories.html">Categories</a></li>
+    </ul>
+    <button class="hamburger" id="hamburger" aria-label="Toggle navigation">
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+    <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">
+      <span class="toggle-moon">🌙</span>
+      <span class="toggle-sun">☀️</span>
+    </button>
+  </div>
+</nav>
 
   <!-- HERO -->
   <header class="hero">

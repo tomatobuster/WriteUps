@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://tomatobuster.github.io/WriteUps/sitemap.xml

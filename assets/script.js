@@ -133,6 +133,26 @@ function initFilter() {
   if (countEl) countEl.textContent = `${cards.length} writeups`;
 }
 
+/* ── Mobile Nav Toggle ────────────────────────────────── */
+function initMobileNav() {
+  const hamburger = document.getElementById('hamburger');
+  const navLinks  = document.getElementById('nav-links');
+  if (!hamburger || !navLinks) return;
+
+  hamburger.addEventListener('click', () => {
+    hamburger.classList.toggle('open');
+    navLinks.classList.toggle('open');
+  });
+
+  // close nav when a link is clicked
+  navLinks.querySelectorAll('a').forEach(a => {
+    a.addEventListener('click', () => {
+      hamburger.classList.remove('open');
+      navLinks.classList.remove('open');
+    });
+  });
+}
+
 /* ── Init All ─────────────────────────────────────────── */
 document.addEventListener('DOMContentLoaded', () => {
   initThemeToggle();
@@ -140,4 +160,5 @@ document.addEventListener('DOMContentLoaded', () => {
   initFlagScramble();
   initScrollFade();
   initFilter();
+  initMobileNav();
 });

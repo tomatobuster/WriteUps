@@ -7,6 +7,20 @@
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@400;500;700&family=Syne:wght@700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="./assets/style.css" />
   <meta name="google-site-verification" content="3Vc8x1jdXPIbvS5X4iuKAZkwUSr18FC1WMOho-akXHg" />
+  <meta name="description" content="Browse all CTF writeups by TomatoBuster. Filter by category and difficulty — from Easy web challenges to Insane binary exploitation on HackTheBox and more.">
+  <link rel="canonical" href="https://tomatobuster.github.io/WriteUps/writeups.html"> 
+    <!-- Open Graph -->
+  <meta property="og:title" content="All Writeups — TomatoBuster">
+  <meta property="og:description" content="Browse all CTF writeups by TomatoBuster. Filter by category and difficulty — from Easy web challenges to Insane binary exploitation.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://tomatobuster.github.io/WriteUps/writeups.html">
+  <meta property="og:image" content="https://tomatobuster.github.io/WriteUps/assets/img/og-cover.png">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="All Writeups — TomatoBuster">
+  <meta name="twitter:description" content="Browse all CTF writeups by TomatoBuster. Filter by category and difficulty — from Easy web challenges to Insane binary exploitation.">
+  <meta name="twitter:image" content="https://tomatobuster.github.io/WriteUps/assets/img/og-cover.png">
   <link rel="icon" type="image/x-icon" href="./ico/favicon.ico">
   <link rel="icon" type="image/png" sizes="32x32" href="./ico/favicon-32x32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="./ico/favicon-16x16.png">
@@ -96,20 +110,25 @@
 <div class="page-wrap">
 
   <!-- NAV -->
-  <nav class="topnav">
-    <a class="topnav-logo" href="index.html">TomatoBuster</a>
-    <div class="topnav-right">
-      <ul class="topnav-links">
-        <li><a href="index.html">Home</a></li>
-        <li><a href="writeups.html" class="active">Writeups</a></li>
-        <li><a href="categories.html">Categories</a></li>
-      </ul>
-      <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">
-        <span class="toggle-moon">🌙</span>
-        <span class="toggle-sun">☀️</span>
-      </button>
-    </div>
-  </nav>
+<nav class="topnav">
+  <a class="topnav-logo" href="index.html">TomatoBuster</a>
+  <div class="topnav-right">
+    <ul class="topnav-links" id="nav-links">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="writeups.html">Writeups</a></li>
+      <li><a href="categories.html">Categories</a></li>
+    </ul>
+    <button class="hamburger" id="hamburger" aria-label="Toggle navigation">
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+    <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">
+      <span class="toggle-moon">🌙</span>
+      <span class="toggle-sun">☀️</span>
+    </button>
+  </div>
+</nav>
 
   <!-- PAGE TITLE -->
   <div class="page-title-block">
@@ -147,7 +166,7 @@
       <button class="chip" data-diff="HARD">HARD</button>
       <button class="chip" data-diff="INSANE">INSANE</button>
     </div>
-    <span class="filter-count" id="filter-count">1 writeup</span>
+    <span class="filter-count" id="filter-count">2 writeups</span>
   </div>
 
   <!-- GRID -->
