@@ -10,7 +10,7 @@
     <item>
       <title>DevArea — HTB Writeup</title>
       <link>https://tomatobuster.github.io/WriteUps/writeups/devarea.html</link>
-      <description>Chaining XXE injection with HoverFly RCE and Bash binary overwriting to gain full system access. HackTheBox 2026, Web, Medium.</description>
+      <description>Chaining XOP and Aoache CXF exploitation with HoverFly RCE and Bash binary overwriting to gain full system access. HackTheBox 2026, Web, Medium.</description>
       <pubDate>Tue, 31 Mar 2026 00:00:00 GMT</pubDate>
       <guid>https://tomatobuster.github.io/WriteUps/writeups/devarea.html</guid>
     </item>
