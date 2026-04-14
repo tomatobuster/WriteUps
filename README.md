@@ -12,7 +12,7 @@
 |-----------|----------|------------|----------|------|
 | [DevArea](https://tomatobuster.github.io/WriteUps/writeups/devarea.html) | Web | Medium | HackTheBox | Mar 31, 2026 |
 | [Kobold](https://tomatobuster.github.io/WriteUps/writeups/kobold.html) | MISC | Easy | HackTheBox | Mar 24, 2026 |
-| [Silentium] (https://tomatobuster.github.io/WriteUps/writeups/silentium.html) | MISC | Easy | HackTheBox | Apr 13, 2026 |
+| [Silentium](https://tomatobuster.github.io/WriteUps/writeups/silentium.html) | MISC | Easy | HackTheBox | Apr 13, 2026 |
 
 ---
 
