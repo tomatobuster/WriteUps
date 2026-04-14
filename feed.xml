@@ -22,6 +22,13 @@
       <pubDate>Mon, 24 Mar 2026 00:00:00 GMT</pubDate>
       <guid>https://tomatobuster.github.io/WriteUps/writeups/kobold.html</guid>
     </item>
+    <item>
+      <title>Silentium — HTB Writeup</title>
+      <link>https://tomatobuster.github.io/WriteUps/writeups/silentium.html</link>
+      <description>Flowise AI api exploitation, Docker Escape and Gogs CVE. HackTheBox 2026, MISC, Easy.</description>
+      <pubDate>Mon, 24 Mar 2026 00:00:00 GMT</pubDate>
+      <guid>https://tomatobuster.github.io/WriteUps/writeups/silentium.html</guid>
+    </item>
 
   </channel>
 </rss>  

